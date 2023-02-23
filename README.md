@@ -1,6 +1,13 @@
-# chapa-rust
+<h1 align="center">
+<div align="center">
+  <a href="http://chapa.co/" target="_blank">
+    <img src="https://assets.chapa.co/assets/images/chapa-logo.svg" width="320" alt="Chapa Logo"/>
+  </a>
+  <p align="center"> Unofficial Rust SDK for the [Chapa API](https://developer.chapa.co/docs/)</p>
+</div>
+</h1>
 
-Unofficial Rust SDK for the [Chapa API](https://developer.chapa.co/docs/)
+
 
 ## Table of Contents
 1. [Documentation](#documentation)
