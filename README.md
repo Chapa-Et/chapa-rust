@@ -7,8 +7,6 @@
 </div>
 </h1>
 
-
-
 ## Table of Contents
 1. [Documentation](#documentation)
 2. [Setup](#setup)
@@ -21,11 +19,12 @@
  The first step is to set up an account on [Chapa's](https://www.chapa.co) homepage. Once you're done, you should have public and secret API key available to you. Copy your secret key and paste it into a .env file in the same directory as your Rust project.
 ```js
     CHAPA_API_PUBLIC_KEY=<API_KEY>
+    CHAPA_BASE_URL=<URL>
+    CHAPA_VERSION=<VERSION>
 ```
-> Note: Since this library has not yet been published on crates.io, you will not be able to simply declare this library as a dependency in your cargo.toml. Please clone the repo and import the library as a crate as follows. Apologies for the inconvenience.
-```rs
-    extern crate chapa_rust;
-    use chapa_rust::Transaction;
+ Install the package to you project
+```bash
+    cargo add chapa_rust
 ```
 
 ## Usage
@@ -157,69 +156,50 @@ BankRequestResponse {
 ```
 
 ### 2. Initialize Transaction  
-Initilzing a transaction does require an input argument formatted according to the `Transaction` struct you imported during setup:
+Initilzing a transaction does require an input argument formatted according to the `Transaction` struct using `TransactionBuilder` struct:
 ```rs
 pub struct Transaction {
-    pub amount: u32,
-    pub currency: String,
-    pub email: String,
-    pub first_name: String,
-    pub last_name: String,
-    pub tx_ref: String
+    amount: u32,
+    currency: Option<String>,
+    email: Option<String>,
+    first_name: Option<String>,
+    last_name: Option<String>,
+    tx_ref: Option<String>,
+    phone_number: Option<String>,
+    callback_url: Option<String>,
+    return_url: Option<String>,
+    customization: Option<CustomizationInfo>,
+    meta: Option<bool>,
 }
 ```
 Here's a simple example:
 ```rs
-    let test_transaction = Transaction {
-        amount: 150,
-        currency: String::from("USD"),
-        email: String::from("john_doe@gmail.com"),
-        first_name: String::from("John"),
-        last_name: String::from("Doe"),
-        tx_ref: String::from("mail_order_injera"),
-    };
+    let tx_ref = "test_reference123";
+
+    let builder = TransactionBuilder::new(100);
+    let transaction = builder
+        .currency(Currency::ETB)
+        .first_name("Abreham Kassa")
+        .tx_ref(tx_ref)
+        .finish();
+
+    let response = transaction.initiate().await?;
+    match response {
+        TransactionResponse::Success(message) => {
+            assert_eq!(message.status, String::from("success"));
+        }
+        _ => (),
+    }
 ```
 
 Under the hood, this is a POST request to the Chapa API. It also does the work of serializing the Transaction struct and deserializing the response to a InitializeRequestResponse object for you.
-
-```rs
-#[tokio::main]
-pub async fn initialize_transaction(
-    transaction: Transaction,
-) -> Result<(), Box<dyn std::error::Error>> {
-    println!("Initializing Transaction");
-    println!("{}", transaction.currency);
-
-    const CHAPA_BASE_URL: &str = "https://api.chapa.co";
-    let version = "v1";
-    let headers = authorize()?; // NOTE: turbo-fished operation
-
-    // Building client + making request
-    let client = reqwest::Client::new();
-    let init_url = format!("{}/{}/transaction/initialize", CHAPA_BASE_URL, version);
-
-    let response = client
-        .post(init_url)
-        .headers(headers)
-        .form(&transaction)
-        .send()
-        .await?;
-
-    // Deserialization into InitializeRequestResponse struct
-    let response_json = response.json::<InitializeRequestResponse>().await?;
-
-    println!("{:#?}", response_json);
-
-    Ok(())
-}
-```
 
 You can expect a similar response in the following format to be printed to the terminal.
 
 ```
 Initializing Transaction
 USD
-InitializeRequestResponse {
+Some( InitializeRequestResponse {
     message: "Hosted Link",
     status: "success",
     data: Some(
@@ -227,36 +207,37 @@ InitializeRequestResponse {
             checkout_url: "https://checkout.chapa.co/checkout/payment/kZrB1LIPpYGhd0Q9mIB7BHCDnDRrAUIgehKMasnJzT0zm",
         },
     ),
-}
+})
 ```
 ### 3. Verify Transaction  
 Verifying a transaction does not involve any struct arguments, but does require a string that represents the tx_ref field of the previously initialized transaction. Similarly to initializing a transaction, this function does work of deserailzing the API's response into a VerifyRequestResponse struct for you:
 ```rs
-#[tokio::main]
-pub async fn verify_transaction(tx_ref: String) -> Result<(), Box<dyn std::error::Error>> {
-    println!("Verifying Transaction");
+pub async fn verify_transaction(
+    tx_ref: &str,
+) -> Result<VerifyRequestResponse, Box<dyn std::error::Error>> {
+    let chapa_base_url = env::var("CHAPA_BASE_URL")?;
+    let version = env::var("CHAPA_VERSION")?;
 
-    const CHAPA_BASE_URL: &str = "https://api.chapa.co";
-    let version = "v1";
     let headers = authorize()?; // NOTE: turbo-fished operation
 
     // Building client + making request
     let client = reqwest::Client::new();
     let verify_url = format!(
         "{}/{}/transaction/verify/{}",
-        CHAPA_BASE_URL, version, tx_ref
+        chapa_base_url, version, tx_ref
     );
 
     println!("{}", verify_url);
 
     let response = client.get(verify_url).headers(headers).send().await?;
+    println!("{}", response.status().to_string());
 
-    // Deserialization into InitializeRequestResponse struct
+    // Deserialization into VerifyRequestResponse struct
     let response_json = response.json::<VerifyRequestResponse>().await?;
 
     println!("{:#?}", response_json);
 
-    Ok(())
+    Ok(response_json)
 }
 ```
 You can expect a similar response in the following format to be printed to the terminal.
@@ -267,19 +248,19 @@ https://api.chapa.co/v1/transaction/verify/test_transac_tx_ref
 VerifyRequestResponse {
     message: "Payment details",
     status: "success",
-    data: FullTransactionInfo {
-        first_name: "Abebe",
-        last_name: "Bikila",
-        email: "abebe@bikila.com",
-        currency: "USD",
-        amount: 100,
-        charge: 1,
-        mode: "test",
-        method: "test",
-        type: "API",
-        status: "success",
-        reference: "66446606376",
-        tx_ref: "test_transac_tx_ref",
+    data: Some( FullTransactionInfo {
+        first_name: Some("Abebe"),
+        last_name: Some("Bikila"),
+        email: Some("abebe@bikila.com"),
+        currency: Some("USD"),
+        amount: Some(100),
+        charge: Some(1.0),
+        mode: Some("test"),
+        method: Some("test"),
+        type: Some("API"),
+        status: Some("success"),
+        reference: Some("66446606376"),
+        tx_ref: Some("test_transac_tx_ref",
         customization: CustomizationInfo {
             title: None,
             description: None,
@@ -288,7 +269,7 @@ VerifyRequestResponse {
         meta: None,
         created_at: "2023-01-03T15:11:47.000000Z",
         updated_at: "2023-01-03T15:11:47.000000Z",
-    },
+    }),
 }
 ```
 
@@ -296,24 +277,30 @@ VerifyRequestResponse {
 Here's a full example involving all necessary imports, a request to retrieve a list of banks, initialzing a transaction and verifying said transaction.
 
 ```rs 
-extern crate chapa_rust;
-use chapa_rust::Transaction;
+use chapa_rust::transaction::TransactionBuilder;
+use chapa_rust::types::TransactionResponse;
 
+#[tokio::main]
 fn main() {
-    chapa_rust::get_banks();
+    let tx_ref = "test_reference123";
 
-    let my_transaction = Transaction {
-        amount: 150,
-        currency: String::from("USD"),
-        email: String::from("john_doe@gmail.com"),
-        first_name: String::from("John"),
-        last_name: String::from("Doe"),
-        tx_ref: String::from("mail_order_injera"),
-    };
+    let builder = TransactionBuilder::new(100);
+    let transaction = builder
+        .currency(Currency::ETB)
+        .first_name("Abreham Kassa")
+        .tx_ref(tx_ref)
+        .finish();
 
-    chapa_rust::initialize_transaction(my_transaction);
-    chapa_rust::verify_transaction("mail_order_injera");
-    
+    let response = transaction.initiate().await?;
+    match response {
+        TransactionResponse::Success(message) => {
+            assert_eq!(message.status, String::from("success"));
+        }
+        _ => (),
+    }
+
+    let _response = verify_transaction(tx_ref).await?;
+    let _response = get_banks().await?;
 }
 ```
 
