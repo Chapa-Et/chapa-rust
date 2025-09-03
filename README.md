@@ -7,8 +7,6 @@
 </div>
 </h1>
 
-
-
 ## Table of Contents
 1. [Documentation](#documentation)
 2. [Setup](#setup)
