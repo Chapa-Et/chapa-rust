@@ -1,7 +1,7 @@
 [package]
 name = "chapa-rust"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 description = "Chapa SDK for Rust to integrate Chapa payment gateway into your Rust applications."
 authors = [] # TODO: Fill it. 
 license = "MIT" 
