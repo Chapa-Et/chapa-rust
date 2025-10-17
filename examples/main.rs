@@ -1,10 +1,7 @@
-#![allow(warnings)]
-
-extern crate chapa_rust;
-use chapa_rust::Transaction;
+use chapa_rust::models::ChapaStructs::Transaction;
 
 fn main() {
-    chapa_rust::get_banks();
+    let _ = chapa_rust::get_banks();
 
     let test_transaction = Transaction {
         amount: 150,
@@ -15,7 +12,7 @@ fn main() {
         tx_ref: String::from("mail_order_injera"),
     };
 
-    chapa_rust::initialize_transaction(test_transaction);
+    let _ = chapa_rust::initialize_transaction(test_transaction);
 
-    chapa_rust::verify_transaction(String::from("mail_order_injera"));
+    let _ = chapa_rust::verify_transaction(String::from("mail_order_injera"));
 }

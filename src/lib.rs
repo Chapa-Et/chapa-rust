@@ -1,8 +1,9 @@
 #![allow(warnings)]
 
-include!("ChapaStructs.rs");
+pub mod models;
 
 use dotenv::dotenv;
+use models::ChapaStructs::*;
 use reqwest::header::{HeaderMap, AUTHORIZATION};
 use std::collections::HashMap;
 use std::env;
