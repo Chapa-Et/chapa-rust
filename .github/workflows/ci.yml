@@ -22,8 +22,8 @@ jobs:
               with:
                   components: rustfmt # Only install rustfmt
 
-            - name: Run cargo fmt --check
-              run: cargo fmt -- --check
+            - name: Run cargo fmt --all -- --check
+              run: cargo fmt --all -- --check
 
     # Linting & Testing (Runs across multiple OSes and configurations)
     test:
@@ -66,4 +66,4 @@ jobs:
 
             - name: Run Clippy Linter
               # This uses the 'lint' alias from .cargo/config.toml
-              run: cargo lint
+              run: cargo clippy --all-targets --all-features -- -D warnings
