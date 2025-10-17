@@ -1,4 +1,4 @@
-use chapa_rust::models::ChapaStructs::Transaction;
+use chapa_rust::models::chapa_models::Transaction;
 
 fn main() {
     let _ = chapa_rust::get_banks();
