@@ -11,7 +11,7 @@ pub struct BankRequestResponse {
 /// Represents a single bank entry from Chapa’s bank list.
 #[derive(Debug, Deserialize)]
 pub struct Bank {
-    id: String,
+    id: u32,
     swift: String,
     name: String,
     acct_length: u32,
@@ -40,7 +40,7 @@ pub struct CheckoutURL {
 pub struct VerifyRequestResponse {
     message: String,
     status: String,
-    data: FullTransactionInfo,
+    data: Option<FullTransactionInfo>,
 }
 
 /// Represents the structure of a transaction request sent to Chapa.
@@ -66,14 +66,15 @@ pub struct FullTransactionInfo {
     first_name: String,
     last_name: String,
     email: String,
+    phone_number: Option<String>,
     currency: String,
     amount: u32,
-    charge: u32,
+    charge: Option<u32>,
     mode: String,
-    method: String,
+    method: Option<String>,
     r#type: String,
     status: String,
-    reference: String,
+    reference: Option<String>,
     tx_ref: String,
     customization: CustomizationInfo,
     meta: Option<String>,

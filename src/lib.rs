@@ -127,7 +127,7 @@ pub mod models;
 
 use dotenv::dotenv;
 use models::chapa_models::*;
-use reqwest::header::{AUTHORIZATION, HeaderMap};
+use reqwest::header::{AUTHORIZATION, HeaderMap, HeaderValue};
 use std::env;
 
 /// Creates an authorization header using the Chapa API public key.
@@ -146,12 +146,11 @@ fn authorize() -> Result<HeaderMap, Box<dyn std::error::Error>> {
 
     let mut headers = HeaderMap::new(); // headers hashmap
 
-    // this casting is necessary because since headers needs a HeaderValue not a string
-    let api_key_header_value = format!("Bearer {}", api_key).parse().unwrap();
+    let api_key_header_value = HeaderValue::try_from(format!("Bearer {}", api_key))?;
 
     headers.insert(AUTHORIZATION, api_key_header_value);
 
-    return Ok(headers);
+    Ok(headers)
 }
 
 /// Retrieves the list of all banks supported by Chapa.
@@ -168,7 +167,7 @@ pub async fn get_banks() -> Result<BankRequestResponse, Box<dyn std::error::Erro
     // TODO: move base URL and version to .env ?
     // const CHAPA_BASE_URL :&str = env::var("CHAPA_BASE_URL");
 
-    let headers = authorize()?; // NOTE: turbo-fished operation
+    let headers = authorize()?;
 
     // Building client + making request
     let client = reqwest::Client::new();
@@ -194,9 +193,6 @@ pub async fn get_banks() -> Result<BankRequestResponse, Box<dyn std::error::Erro
 pub async fn initialize_transaction(
     transaction: Transaction,
 ) -> Result<InitializeRequestResponse, Box<dyn std::error::Error>> {
-    println!("Initializing Transaction");
-    println!("{}", transaction.currency);
-
     const CHAPA_BASE_URL: &str = "https://api.chapa.co";
     let version = "v1";
     // TODO: move base URL and version to .env ?
@@ -211,7 +207,7 @@ pub async fn initialize_transaction(
     let response = client
         .post(init_url)
         .headers(headers)
-        .form(&transaction)
+        .json(&transaction)
         .send()
         .await?;
 
@@ -234,14 +230,12 @@ pub async fn initialize_transaction(
 pub async fn verify_transaction(
     tx_ref: String,
 ) -> Result<VerifyRequestResponse, Box<dyn std::error::Error>> {
-    println!("Verifying Transaction");
-
     const CHAPA_BASE_URL: &str = "https://api.chapa.co";
     let version = "v1";
+    let api_key = env::var("CHAPA_API_PUBLIC_KEY")?;
+
     // TODO: move base URL and version to .env ?
     // const CHAPA_BASE_URL :&str = env::var("CHAPA_BASE_URL");
-
-    let headers = authorize()?; // NOTE: turbo-fished operation
 
     // Building client + making request
     let client = reqwest::Client::new();
@@ -250,14 +244,10 @@ pub async fn verify_transaction(
         CHAPA_BASE_URL, version, tx_ref
     );
 
-    println!("{}", verify_url);
-
-    let response = client.get(verify_url).headers(headers).send().await?;
+    let response = client.get(verify_url).bearer_auth(api_key).send().await?;
 
     // Deserialization into InitializeRequestResponse struct
     let response_json = response.json::<VerifyRequestResponse>().await?;
-
-    println!("{:#?}", response_json);
 
     Ok(response_json)
 }
