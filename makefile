@@ -39,3 +39,8 @@ check: lint test
 clean:
 	@echo "Cleaning build artifacts..."
 	cargo clean
+
+# Generate documentation for the project with no dependencies
+doc:
+	@echo "Generating documentation..."
+	cargo doc --no-deps
