@@ -124,34 +124,32 @@
 //! Rust developers building payment systems in Ethiopia and beyond.
 #![deny(missing_docs)]
 pub mod config;
+pub mod error;
 pub mod models;
 
-use dotenv::dotenv;
 use models::chapa_models::*;
-use reqwest::header::{AUTHORIZATION, HeaderMap, HeaderValue};
-use std::env;
+use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
+use std::collections::HashMap;
 
-/// Creates an authorization header using the Chapa API public key.
-///
-/// This function loads the environment variable `CHAPA_API_PUBLIC_KEY`
-/// from a `.env` file using the `dotenv` crate and constructs the
-/// proper `Authorization` header required for Chapa API requests.
-///
+use crate::{
+    config::ChapaConfig,
+    error::{ChapaError, Result},
+};
+
+/// Builds the default_headers of [ChapaConfig] into a HeaderMap for reqwest requests.
 /// # Errors
-/// Returns an error if the environment variable is missing or if
-/// the header value cannot be parsed.
-fn authorize() -> Result<HeaderMap, Box<dyn std::error::Error>> {
-    dotenv().ok(); // pulling in env vars (should include api key)
+/// Returns an error if any header value is invalid.
+fn build_header(headers: HashMap<String, String>) -> Result<HeaderMap> {
+    let mut header_map = HeaderMap::new();
+    for (key, value) in headers {
+        let header_key = HeaderName::try_from(key.as_str())
+            .map_err(|e| ChapaError::InvalidHeaderValue(format!("{}: {}", key, e)))?;
+        let header_value = HeaderValue::try_from(value.as_str())
+            .map_err(|e| ChapaError::InvalidHeaderName(format!("{}: {}", value, e)))?;
 
-    let api_key = env::var("CHAPA_API_PUBLIC_KEY")?; // NOTE: turbo-fished operation
-
-    let mut headers = HeaderMap::new(); // headers hashmap
-
-    let api_key_header_value = HeaderValue::try_from(format!("Bearer {}", api_key))?;
-
-    headers.insert(AUTHORIZATION, api_key_header_value);
-
-    Ok(headers)
+        header_map.insert(header_key, header_value);
+    }
+    Ok(header_map)
 }
 
 /// Retrieves the list of all banks supported by Chapa.
@@ -162,18 +160,19 @@ fn authorize() -> Result<HeaderMap, Box<dyn std::error::Error>> {
 /// # Errors
 /// Returns an error if the network request fails or if the response
 /// cannot be deserialized.
-pub async fn get_banks() -> Result<BankRequestResponse, Box<dyn std::error::Error>> {
-    const CHAPA_BASE_URL: &str = "https://api.chapa.co";
-    let version = "v1";
-    // TODO: move base URL and version to .env ?
-    // const CHAPA_BASE_URL :&str = env::var("CHAPA_BASE_URL");
-
-    let headers = authorize()?;
+pub async fn get_banks() -> Result<BankRequestResponse> {
+    let config = ChapaConfig::builder().build()?;
+    let headers = build_header(config.default_headers)?;
 
     // Building client + making request
     let client = reqwest::Client::new();
-    let banks_url = format!("{}/{}/banks", CHAPA_BASE_URL, version);
-    let response = client.get(banks_url).headers(headers).send().await?;
+    let banks_url = format!("{}/{}/banks", config.base_url, config.version);
+    let response = client
+        .get(banks_url)
+        .bearer_auth(config.api_key)
+        .headers(headers)
+        .send()
+        .await?;
 
     // Deserialization into Bank and BankRequestResponse structs
     let response_json = response.json::<BankRequestResponse>().await?;
@@ -191,19 +190,16 @@ pub async fn get_banks() -> Result<BankRequestResponse, Box<dyn std::error::Erro
 ///
 /// # Errors
 /// Returns an error if the request fails or if the response cannot be parsed.
-pub async fn initialize_transaction(
-    transaction: Transaction,
-) -> Result<InitializeRequestResponse, Box<dyn std::error::Error>> {
-    const CHAPA_BASE_URL: &str = "https://api.chapa.co";
-    let version = "v1";
-    // TODO: move base URL and version to .env ?
-    // const CHAPA_BASE_URL :&str = env::var("CHAPA_BASE_URL");
-
-    let headers = authorize()?; // NOTE: turbo-fished operation
+pub async fn initialize_transaction(transaction: Transaction) -> Result<InitializeRequestResponse> {
+    let config = ChapaConfig::builder().build()?;
+    let headers = build_header(config.default_headers)?;
 
     // Building client + making request
     let client = reqwest::Client::new();
-    let init_url = format!("{}/{}/transaction/initialize", CHAPA_BASE_URL, version);
+    let init_url = format!(
+        "{}/{}/transaction/initialize",
+        config.base_url, config.version
+    );
 
     let response = client
         .post(init_url)
@@ -228,24 +224,23 @@ pub async fn initialize_transaction(
 ///
 /// # Errors
 /// Returns an error if the request fails or the response cannot be deserialized.
-pub async fn verify_transaction(
-    tx_ref: String,
-) -> Result<VerifyRequestResponse, Box<dyn std::error::Error>> {
-    const CHAPA_BASE_URL: &str = "https://api.chapa.co";
-    let version = "v1";
-    let api_key = env::var("CHAPA_API_PUBLIC_KEY")?;
-
-    // TODO: move base URL and version to .env ?
-    // const CHAPA_BASE_URL :&str = env::var("CHAPA_BASE_URL");
+pub async fn verify_transaction(tx_ref: String) -> Result<VerifyRequestResponse> {
+    let config = ChapaConfig::builder().build()?;
+    let headers = build_header(config.default_headers)?;
 
     // Building client + making request
     let client = reqwest::Client::new();
     let verify_url = format!(
         "{}/{}/transaction/verify/{}",
-        CHAPA_BASE_URL, version, tx_ref
+        config.base_url, config.version, tx_ref
     );
 
-    let response = client.get(verify_url).bearer_auth(api_key).send().await?;
+    let response = client
+        .get(verify_url)
+        .bearer_auth(config.api_key)
+        .headers(headers)
+        .send()
+        .await?;
 
     // Deserialization into InitializeRequestResponse struct
     let response_json = response.json::<VerifyRequestResponse>().await?;

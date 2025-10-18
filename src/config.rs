@@ -61,6 +61,8 @@
 use std::collections::HashMap;
 use std::time::Duration;
 
+use crate::error::{ChapaError, Result};
+
 const PLACEHOLDER_API_KEY: &str = "placeholder_api_key";
 
 /// The `ChapaConfig` struct provides a centralized configuration mechanism for
@@ -143,10 +145,9 @@ impl ChapaConfigBuilder {
     }
 
     /// Finalizes the configuration and validates it before use.
-    pub fn build(self) -> Result<ChapaConfig, String> {
+    pub fn build(self) -> Result<ChapaConfig> {
         if self.api_key.is_none() || self.api_key == Some(PLACEHOLDER_API_KEY.to_string()) {
-            // TODO: use app error
-            return Err("API Key is required but not set. Please set it using the CHAPA_API_PUBLIC_KEY environment variable or via the builder's api_key() method.".to_string());
+            return Err(ChapaError::MissingApiKey);
         }
 
         Ok(ChapaConfig {

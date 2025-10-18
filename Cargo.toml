@@ -28,5 +28,6 @@ categories = [
 [dependencies]
 reqwest = { version = "0.12.24", features = ["json"] }
 tokio = { version = "1", features = ["full"] }
-dotenv = "0.15.0"
 serde = { version = "1.0", features = ["derive"] }
+thiserror = "2.0.17"
+dotenvy = "0.15.7"
