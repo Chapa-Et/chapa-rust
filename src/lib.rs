@@ -62,7 +62,7 @@
 //!
 //! ---
 //!
-//! ## Error Handling
+//! ## [TODO!] Error Handling
 //!
 //! Errors are represented by the [`ChapaError`](crate::error::ChapaError) enum,
 //! which encapsulates HTTP, deserialization, and API-level errors.
@@ -123,6 +123,7 @@
 //! It aims to provide an ergonomic and type-safe developer experience for
 //! Rust developers building payment systems in Ethiopia and beyond.
 #![deny(missing_docs)]
+pub mod config;
 pub mod models;
 
 use dotenv::dotenv;
