@@ -4,6 +4,7 @@ use std::collections::HashMap;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+// TODO: check the type of `amount` field has some inconsistency in the docs, sometimes it's string sometimes number
 // ------------------------------------- Initialize Payment ---------------------------------------------
 
 /// The Request structure for initializing a payment transaction.
@@ -20,7 +21,7 @@ pub struct InitializeOptions {
     /// The currency for the transaction (e.g., "ETB", "USD").
     pub currency: String,
     /// The amount to be charged in the transaction.
-    pub amount: f64,
+    pub amount: String,
     /// A unique reference for the transaction.
     pub tx_ref: String,
     /// An optional callback URL for transaction updates.
@@ -29,8 +30,10 @@ pub struct InitializeOptions {
     pub return_url: Option<String>,
     /// Customization options for the payment interface.
     pub customization: Option<Customization>,
-    /// Subaccount details for splitting payments.
-    pub subaccounts: Option<Vec<Subaccount>>,
+    /// Additional metadata to be associated with the transaction.
+    pub meta: Option<HashMap<String, bool>>,
+    //? The server seems to ignore this field for now, it returns 400 Bad Request if included. I took it from the Node.js SDK.
+    // pub subaccounts: Option<Vec<Subaccount>>,
 }
 
 /// Represents a subaccount for payment splitting.
@@ -92,40 +95,41 @@ pub struct VerifyResponse {
     /// The status of the API response.
     pub status: String,
     /// The data containing the verification details.
-    pub data: VerifyData,
+    pub data: Option<VerifyData>,
 }
 
 /// Represents the detailed data received when verifying a payment transaction.
+// TODO: Adjust field types as needed based on actual API response, I made most optional to avoid deserialization issues
 #[derive(Debug, Deserialize)]
 pub struct VerifyData {
     /// The first name of the customer.
-    pub first_name: String,
+    pub first_name: Option<String>,
     /// The last name of the customer.
-    pub last_name: String,
+    pub last_name: Option<String>,
     /// The email address of the customer.
-    pub email: String,
+    pub email: Option<String>,
     /// The currency for the transaction (e.g., "ETB", "USD").
-    pub currency: String,
+    pub currency: Option<String>,
     /// The amount to be charged in the transaction.
-    pub amount: String,
+    pub amount: f64,
     /// The charge for the transaction.
-    pub charge: String,
+    pub charge: Option<String>,
     /// The mode of the transaction.
-    pub mode: String,
+    pub mode: Option<String>,
     /// The payment method used in the transaction.
-    pub method: String,
+    pub method: Option<String>,
     /// The type of the transaction.
-    pub r#type: String,
+    pub r#type: Option<String>,
     /// The status of the transaction.
-    pub status: String,
+    pub status: Option<String>,
     /// The reference for the transaction.
-    pub reference: String,
+    pub reference: Option<String>,
     /// The transaction reference.
-    pub tx_ref: String,
+    pub tx_ref: Option<String>,
     /// The customization details of the transaction.
-    pub customization: Customization,
+    pub customization: Option<Customization>,
     /// Additional metadata associated with the transaction.
-    pub meta: Option<HashMap<String, String>>, // TODO: Adjust the type as needed(could be the map or a specific struct), to my knowledge the type is unknown
+    pub meta: Option<String>, // TODO: Adjust the type as needed(could be the map or a specific struct), to my knowledge the type is not documented
     /// The timestamp when the transaction was created.
     pub created_at: DateTime<Utc>,
     /// The timestamp when the transaction was last updated.

@@ -90,7 +90,6 @@ impl ChapaClient {
         if let Some(b) = body {
             request = request.json(&b);
         }
-
         Ok(request
             .bearer_auth(&self.config.api_key)
             .headers(headers)

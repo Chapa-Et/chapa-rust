@@ -30,9 +30,9 @@ pub struct Bank {
     /// The last updated timestamp of the bank entry.
     pub updated_at: DateTime<Utc>,
     /// Whether the bank supports RTGS.
-    pub is_rtgs: Option<bool>,
+    pub is_rtgs: Option<u8>,
     /// Whether the bank supports mobile money.
-    pub is_mobilemoney: Option<bool>,
+    pub is_mobilemoney: Option<u8>,
     /// The currency supported by the bank.
     pub currency: Currency,
 }
