@@ -15,6 +15,9 @@ pub enum ChapaError {
     /// Indicates that a network error occurred.
     #[error("Network error occurred")]
     NetworkError(#[from] reqwest::Error),
+    /// Invalid HTTP method
+    #[error("Invalid HTTP method: {0}")]
+    InvalidHttpMethod(String),
     /// Represents an error returned by the Chapa API.
     #[error("API error occurred: {0}")]
     ApiError(String),
