@@ -1,33 +1,42 @@
-use chapa_rust::models::chapa_models::Transaction;
+use chapa_rust::{
+    client::ChapaClient, config::ChapaConfigBuilder, models::payment::InitializeOptions,
+};
 
 #[tokio::main]
 async fn main() {
-    let result = chapa_rust::get_banks().await;
+    // load environment variables
+    dotenvy::dotenv().ok();
+    // First initialize a chapa client
+    let config = ChapaConfigBuilder::new().build().unwrap();
+    let mut client = ChapaClient::from_config(config);
+
+    // call the get_banks method
+    let result = client.get_banks().await;
     match result {
         Ok(banks) => println!("{:#?}", banks),
         Err(e) => eprintln!("{:#?}", e),
     }
 
-    let test_transaction = Transaction {
-        amount: 150,
+    let tx_ref = String::from("mail_order_injer");
+    let test_transaction = InitializeOptions {
+        amount: "150".to_string(),
         currency: String::from("USD"),
-        email: String::from("john_doe@gmail.com"),
-        first_name: String::from("John"),
-        last_name: String::from("Doe"),
-        tx_ref: String::from("mail_order_injera"),
+        email: Some(String::from("john_doe@gmail.com")),
+        first_name: Some(String::from("John")),
+        last_name: Some(String::from("Doe")),
+        tx_ref: tx_ref.clone(),
+        ..Default::default()
     };
 
-    let init_success = chapa_rust::initialize_transaction(test_transaction)
-        .await
-        .inspect(|init_resp| println!("{:#?}", init_resp));
+    let init_success = client.initialize_transaction(test_transaction).await;
+    match init_success {
+        Ok(resp) => println!("{:#?}", resp),
+        Err(e) => eprintln!("{:#?}", e),
+    }
 
-    if init_success.is_ok() {
-        let verification_result = chapa_rust::verify_transaction(String::from("mail_order_injera"))
-            .await
-            .inspect(|ver| println!("{:#?}", ver));
-        match verification_result {
-            Ok(banks) => println!("{:#?}", banks),
-            Err(e) => eprintln!("{:#?}", e),
-        }
+    let verification_result = client.verify_transaction(&tx_ref).await;
+    match verification_result {
+        Ok(verification_data) => println!("{:#?}", verification_data),
+        Err(e) => eprintln!("{:#?}", e),
     }
 }
