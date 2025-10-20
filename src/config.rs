@@ -26,6 +26,7 @@
 //! use std::time::Duration;
 //!
 //! // Building a default configuration
+//! dotenvy::dotenv().ok(); // Load environment variables from .env file
 //! let default_config = ChapaConfig::builder()
 //!     .build()
 //!     .expect("Failed to build default config");

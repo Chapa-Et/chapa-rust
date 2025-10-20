@@ -6,16 +6,17 @@
 //! serialization and deserialization.
 //! ## Example
 //! ```rust,no_run
-//! use chapa_rust::models::chapa_models::{Transaction, BankRequestResponse};
+//! use chapa_rust::models::payment::InitializeOptions;
 //!
 //! // Create a transaction
-//! let tx = Transaction {
-//!     amount: 100,
+//! let tx = InitializeOptions {
+//!     amount: "100".to_string(),
 //!     currency: "ETB".to_string(),
-//!     email: "user@example.com".to_string(),
-//!     first_name: "John".to_string(),
-//!     last_name: "Doe".to_string(),
+//!     email: Some("user@example.com".to_string()),
+//!     first_name: Some("John".to_string()),
+//!     last_name: Some("Doe".to_string()),
 //!     tx_ref: "unique_tx_1234".to_string(),
+//!     ..Default::default()
 //! };
 //! ```
 //!

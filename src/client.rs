@@ -6,11 +6,16 @@
 //! ## Example
 //! ```rust,no_run
 //! use chapa_rust::client::ChapaClient;
+//! use chapa_rust::config::ChapaConfigBuilder;
+//!
 //! let chapa_client = ChapaClient::new("your_secret_key").unwrap();
+//! // or using a custom config
+//! let config = ChapaConfigBuilder::new().build().unwrap();
+//! let chapa_client = ChapaClient::from_config(config);
 //! ```
 //! # Errors
 //! Errors encountered during API interactions are represented by the
-//! [`ChapaError`](crate::error::ChapaError) enum.
+//! [`ChapaError`] enum.
 use std::collections::HashMap;
 
 use reqwest::{
@@ -103,7 +108,18 @@ impl ChapaClient {
     ///
     /// This function makes a `GET` request to the `/banks` endpoint and
     /// deserializes the JSON response into a [`BankRequestResponse`] struct.
-    ///
+    /// # Example
+    /// ```
+    /// #[tokio::main]
+    /// async fn main() {
+    /// use chapa_rust::client::ChapaClient;
+    /// use chapa_rust::config::ChapaConfigBuilder;
+    /// dotenvy::dotenv().ok();
+    /// let config = ChapaConfigBuilder::new().build().unwrap();
+    /// let mut client = ChapaClient::from_config(config);
+    /// let banks = client.get_banks().await.unwrap();
+    /// }
+    /// ```
     /// # Errors
     /// Returns an error if the network request fails or if the response
     /// cannot be deserialized.
@@ -123,6 +139,26 @@ impl ChapaClient {
     /// # Parameters
     /// - `transaction`: The transaction details (amount, currency, customer info, etc.)
     ///
+    /// # Example
+    /// ```
+    /// #[tokio::main]
+    /// async fn main() {
+    /// use chapa_rust::{client::ChapaClient, config::ChapaConfigBuilder, models::payment::InitializeOptions};
+    /// dotenvy::dotenv().ok();
+    /// let config = ChapaConfigBuilder::new().build().unwrap();
+    /// let mut client = ChapaClient::from_config(config);
+    /// let transaction = InitializeOptions {
+    ///         amount: "100".to_string(),
+    ///         currency: "ETB".to_string(),
+    ///         email: Some("customer@gmail.com".to_string()),
+    ///         first_name: Some("John".to_string()),
+    ///         last_name: Some("Doe".to_string()),
+    ///         tx_ref: String::from("some_generated_tax_ref"),
+    ///         ..Default::default()
+    ///     };
+    /// let response = client.initialize_transaction(transaction).await.unwrap();
+    /// }
+    /// ```
     /// # Errors
     /// Returns an error if the request fails or if the response cannot be parsed.
     pub async fn initialize_transaction(
@@ -148,6 +184,18 @@ impl ChapaClient {
     /// # Parameters
     /// - `tx_ref`: A unique reference string identifying the transaction.
     ///
+    /// # Example
+    /// ```
+    /// #[tokio::main]
+    /// async fn main() {
+    /// use chapa_rust::{client::ChapaClient, config::ChapaConfigBuilder};
+    /// dotenvy::dotenv().ok();
+    /// let config = ChapaConfigBuilder::new().build().unwrap();
+    /// let mut client = ChapaClient::from_config(config);
+    /// let tx_ref = "your_transaction_reference";
+    /// let response = client.verify_transaction(tx_ref).await.unwrap();
+    /// }
+    /// ```
     /// # Errors
     /// Returns an error if the request fails or the response cannot be deserialized.
     pub async fn verify_transaction(&mut self, tx_ref: &str) -> Result<VerifyResponse> {

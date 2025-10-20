@@ -22,27 +22,25 @@
 //!
 //! ## Core API Overview
 //!
-//! ```rust
-//! use chapa_rust::ChapaClient;
-//! use chapa_rust::models::InitializeRequest;
+//! ```
+//! use chapa_rust::client::ChapaClient;
+//! use chapa_rust::models::payment::InitializeOptions;
 //!
 //! #[tokio::main]
-//! async fn main() -> Result<(), Box<dyn std::error::Error>> {
-//!     let client = ChapaClient::new("YOUR_SECRET_KEY");
+//! async fn main() {
+//!     let mut client = ChapaClient::new("YOUR_SECRET_KEY").unwrap();
 //!
-//!     let req = InitializeRequest {
+//!     let req = InitializeOptions {
 //!         amount: "100".to_string(),
 //!         currency: "ETB".to_string(),
-//!         email: "customer@example.com".to_string(),
+//!         email: Some("customer@example.com".to_string()),
 //!         first_name: Some("John".to_string()),
 //!         last_name: Some("Doe".to_string()),
 //!         ..Default::default()
 //!     };
 //!
-//!     let response = client.initialize(req).await?;
-//!     println!("Payment URL: {}", response.data.checkout_url);
-//!
-//!     Ok(())
+//!     let response = client.initialize_transaction(req).await.unwrap();
+//!     println!("Payment status: {} \nPayment message: {}", response.status, response.message);
 //! }
 //! ```
 //!
@@ -67,12 +65,6 @@
 //! Errors are represented by the [`ChapaError`](crate::error::ChapaError) enum,
 //! which encapsulates HTTP, deserialization, and API-level errors.
 //!
-//! ```rust
-//! match client.verify("TX-12345").await {
-//!     Ok(res) => println!("Verified payment: {:?}", res),
-//!     Err(err) => eprintln!("Error verifying payment: {:?}", err),
-//! }
-//! ```
 //!
 //! ---
 //!
