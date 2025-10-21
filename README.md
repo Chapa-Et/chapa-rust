@@ -25,8 +25,7 @@
 1. [Setup](#setup)
 2. [Usage](#usage)
 3. [Contribution](#contribution)
-4. [Example](#example)
-5. [License](#license)
+4. [License](#license)
 
 <!-- ## Documentation
 Comprehensive documentation is available on [Docs.rs](https://docs.rs/chapa-rust) and includes:
@@ -118,7 +117,7 @@ Here's a simple example:
     };
 ```
 
-Under the hood, this is a POST request to the Chapa API. It also does the work of serializing the Transaction struct and deserializing the response to an `InitializeRequestResponse` object for you.
+Under the hood, this is a POST request to the Chapa API. It also does the work of serializing the Transaction struct and deserializing the response to an `InitializeResponse` object for you.
 
 ```rs
 use chapa_rust::{

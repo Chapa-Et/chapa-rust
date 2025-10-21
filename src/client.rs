@@ -66,9 +66,9 @@ impl ChapaClient {
         let mut header_map = HeaderMap::new();
         for (key, value) in headers {
             let header_key = HeaderName::try_from(key)
-                .map_err(|e| ChapaError::InvalidHeaderValue(format!("{}: {}", key, e)))?;
+                .map_err(|e| ChapaError::InvalidHeaderName(format!("{}: {}", key, e)))?;
             let header_value = HeaderValue::try_from(value)
-                .map_err(|e| ChapaError::InvalidHeaderName(format!("{}: {}", value, e)))?;
+                .map_err(|e| ChapaError::InvalidHeaderValue(format!("{}: {}", value, e)))?;
 
             header_map.insert(header_key, header_value);
         }
