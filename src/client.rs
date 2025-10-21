@@ -107,7 +107,7 @@ impl ChapaClient {
     /// Retrieves the list of all banks supported by Chapa.
     ///
     /// This function makes a `GET` request to the `/banks` endpoint and
-    /// deserializes the JSON response into a [`BankRequestResponse`] struct.
+    /// deserializes the JSON response into a [`GetBanksResponse`] struct.
     /// # Example
     /// ```
     /// #[tokio::main]
@@ -134,7 +134,7 @@ impl ChapaClient {
     /// Initializes a new transaction with Chapa.
     ///
     /// Sends a `POST` request to `/transaction/initialize` with transaction
-    /// details provided in the [`Transaction`] struct.
+    /// details provided in the [`InitializeOptions`] struct.
     ///
     /// # Parameters
     /// - `transaction`: The transaction details (amount, currency, customer info, etc.)

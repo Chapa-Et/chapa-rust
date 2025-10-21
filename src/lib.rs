@@ -60,7 +60,7 @@
 //!
 //! ---
 //!
-//! ## [TODO!] Error Handling
+//! ## Error Handling
 //!
 //! Errors are represented by the [`ChapaError`](crate::error::ChapaError) enum,
 //! which encapsulates HTTP, deserialization, and API-level errors.

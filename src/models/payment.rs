@@ -1,5 +1,4 @@
 //! Models for Payment operations
-use std::collections::HashMap;
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -31,9 +30,9 @@ pub struct InitializeOptions {
     /// Customization options for the payment interface.
     pub customization: Option<Customization>,
     /// Additional metadata to be associated with the transaction.
-    pub meta: Option<HashMap<String, bool>>,
-    //? The server seems to ignore this field for now, it returns 400 Bad Request if included. I took it from the Node.js SDK.
-    // pub subaccounts: Option<Vec<Subaccount>>,
+    pub meta: serde_json::Value, // NOTE: Using serde_json::Value to allow flexible metadata structure, but if the structure is known, consider using a specific struct or HashMap<String, String>
+                                 //? The server seems to ignore the field below for now, it returns 400 Bad Request if included. I took it from the Node.js SDK.
+                                 // pub subaccounts: Option<Vec<Subaccount>>,
 }
 
 /// Represents a subaccount for payment splitting.

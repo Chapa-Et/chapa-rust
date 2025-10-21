@@ -47,13 +47,6 @@
 //!
 //! ```
 //!
-//! ## Testing
-//!
-//! The module includes unit tests to verify the default configuration and the builder pattern:
-//!
-//! - `test_default_config`: Ensures the default configuration is correctly initialized.
-//! - `test_builder_pattern`: Validates the builder pattern for creating custom configurations.
-//!
 //! ## Notes
 //!
 //! - The API key can be set using the `CHAPA_API_PUBLIC_KEY` environment variable.
