@@ -1,5 +1,7 @@
 use chapa_rust::{
-    client::ChapaClient, config::ChapaConfigBuilder, models::payment::InitializeOptions,
+    client::ChapaClient,
+    config::ChapaConfigBuilder,
+    models::payment::{Customization, InitializeOptions},
 };
 #[tokio::main]
 async fn main() {
@@ -17,6 +19,11 @@ async fn main() {
         first_name: Some(String::from("John")),
         last_name: Some(String::from("Doe")),
         tx_ref: tx_ref.clone(),
+        customization: Some(Customization {
+            title: Some("Injera Purchase".to_string()), // CONSIDER: make the title very long to observe an error
+            description: Some("Order 1234 - 5kg of Injera".to_string()), // CONSIDER: use "#" inside to observe an error
+            logo: Some("https://example.com/logo.png".to_string()),
+        }),
         ..Default::default()
     };
 

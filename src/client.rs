@@ -27,8 +27,8 @@ use crate::{
     config::{ChapaConfig, ChapaConfigBuilder},
     error::{ChapaError, Result},
     models::{
-        bank::GetBanksResponse,
-        payment::{InitializeOptions, InitializeResponse, VerifyResponse},
+        payment::InitializeOptions,
+        response::{GetBanksResponse, InitializeResponse, VerifyResponse},
     },
 };
 
@@ -280,12 +280,12 @@ mod tests {
 
         // ACT for success
         let response_success = client.get_banks().await.unwrap();
-        assert!(!response_success.message.is_empty());
+        assert!(!response_success.message.is_null());
         assert!(response_success.data.is_some());
 
         // ACT for failure
         let response_failure = client.get_banks().await.unwrap();
-        assert!(!response_failure.message.is_empty());
+        assert!(!response_failure.message.is_null());
         // assert_eq!(response_failure.status, "failed");
         assert!(response_failure.data.is_none());
 
@@ -362,7 +362,7 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(response_success.status, "success");
-        assert!(!response_success.message.is_empty());
+        assert!(!response_success.message.is_null());
         assert!(response_success.data.is_some());
 
         // ACT for failure
@@ -371,7 +371,7 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(response_failure.status, "failed");
-        assert!(!response_failure.message.is_empty());
+        assert!(!response_failure.message.is_null());
         assert!(response_failure.data.is_none());
 
         success.assert_async().await;
@@ -450,13 +450,13 @@ mod tests {
         // ACT for success
         let response_success = client.verify_transaction("chewatatest-6669").await.unwrap();
         assert_eq!(response_success.status, "success");
-        assert!(!response_success.message.is_empty()); // NOTE: ckeck if it is empty because I suspect there might be a change if I put string comparison.
+        assert!(!response_success.message.is_null()); // NOTE: ckeck if it is empty because I suspect there might be a change if I put string comparison.
         assert!(response_success.data.is_some());
 
         // ACT for failure
         let response_failure = client.verify_transaction("chewatatest-6669").await.unwrap();
         assert_eq!(response_failure.status, "failed");
-        assert!(!response_failure.message.is_empty()); // NOTE: check if it is empty because I suspect there might be a change if I put string comparison.
+        assert!(!response_failure.message.is_null()); // NOTE: check if it is empty because I suspect there might be a change if I put string comparison.
         assert!(response_failure.data.is_none());
 
         success.assert_async().await;

@@ -50,10 +50,13 @@ pub struct Subaccount {
 /// Customization options for the payment interface.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Customization {
+    #[serde(skip_serializing_if = "Option::is_none")]
     /// The title to be displayed on the payment interface.
     pub title: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     /// The description to be displayed on the payment interface.
     pub description: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     /// The logo URL to be displayed on the payment interface.
     pub logo: Option<String>,
 }
@@ -67,17 +70,6 @@ pub enum SplitType {
     FLAT,
 }
 
-/// The Response structure received after initializing a payment transaction.
-#[derive(Debug, Deserialize)]
-pub struct InitializeResponse {
-    /// The message from the API.
-    pub message: String,
-    /// The status of the API response.
-    pub status: String,
-    /// The data containing the checkout URL.
-    pub data: Option<CheckoutURL>,
-}
-
 /// Represents the checkout URL provided by Chapa after a successful initialization.
 #[derive(Debug, Deserialize)]
 pub struct CheckoutURL {
@@ -86,17 +78,6 @@ pub struct CheckoutURL {
 }
 
 // ------------------------------------- Verify Payment ---------------------------------------------
-
-/// The Response structure received after verifying a payment transaction.
-#[derive(Debug, Deserialize)]
-pub struct VerifyResponse {
-    /// The message from the API.
-    pub message: String,
-    /// The status of the API response.
-    pub status: String,
-    /// The data containing the verification details.
-    pub data: Option<VerifyData>,
-}
 
 /// Represents the detailed data received when verifying a payment transaction.
 // TODO: Adjust field types as needed based on actual API response, I made most optional to avoid deserialization issues

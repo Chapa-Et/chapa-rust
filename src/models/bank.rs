@@ -3,16 +3,6 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-/// Represents the response from Chapa when fetching the list of supported banks.
-#[derive(Debug, Serialize, Deserialize)]
-pub struct GetBanksResponse {
-    // TODO: I don't know why the happy path in the documentation doesn't have status field. maybe ask.
-    /// The message of the response.
-    pub message: String,
-    /// The response data.
-    pub data: Option<Vec<Bank>>,
-}
-
 /// Represents a single bank entry from Chapa’s bank list.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Bank {
