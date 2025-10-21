@@ -11,7 +11,7 @@
 //! let chapa_client = ChapaClient::new("your_secret_key").unwrap();
 //! // or using a custom config
 //! let config = ChapaConfigBuilder::new().build().unwrap();
-//! let chapa_client = ChapaClient::from_config(config);
+//! let chapa_client = ChapaClient::from_config(config).unwrap();
 //! ```
 //! # Errors
 //! Errors encountered during API interactions are represented by the
@@ -48,15 +48,15 @@ impl ChapaClient {
     /// Creates a new ChapaClient with the provided secret key.
     pub fn new(secret_key: impl Into<String>) -> Result<Self> {
         let config = ChapaConfigBuilder::new().api_key(secret_key).build()?;
-        let http = Client::new();
+        let http = Client::builder().timeout(config.timeout).build()?;
         Ok(Self { http, config })
     }
 
     /// Creates a new `ChapaClient` from an existing `ChapaConfig`.
     /// You can build a [`ChapaConfig`] using [`ChapaConfigBuilder`].
-    pub fn from_config(config: ChapaConfig) -> Self {
-        let http = Client::new();
-        Self { http, config }
+    pub fn from_config(config: ChapaConfig) -> Result<Self> {
+        let http = Client::builder().timeout(config.timeout).build()?;
+        Ok(Self { http, config })
     }
 
     /// Helper function to convert the default_headers of [ChapaConfig] into a HeaderMap for reqwest requests.
@@ -116,7 +116,7 @@ impl ChapaClient {
     /// use chapa_rust::config::ChapaConfigBuilder;
     /// dotenvy::dotenv().ok();
     /// let config = ChapaConfigBuilder::new().build().unwrap();
-    /// let mut client = ChapaClient::from_config(config);
+    /// let mut client = ChapaClient::from_config(config).unwrap();
     /// let banks = client.get_banks().await.unwrap();
     /// }
     /// ```
@@ -140,13 +140,13 @@ impl ChapaClient {
     /// - `transaction`: The transaction details (amount, currency, customer info, etc.)
     ///
     /// # Example
-    /// ```
+    /// ```rust,no_run
     /// #[tokio::main]
     /// async fn main() {
     /// use chapa_rust::{client::ChapaClient, config::ChapaConfigBuilder, models::payment::InitializeOptions};
     /// dotenvy::dotenv().ok();
     /// let config = ChapaConfigBuilder::new().build().unwrap();
-    /// let mut client = ChapaClient::from_config(config);
+    /// let mut client = ChapaClient::from_config(config).unwrap();
     /// let transaction = InitializeOptions {
     ///         amount: "100".to_string(),
     ///         currency: "ETB".to_string(),
@@ -191,7 +191,7 @@ impl ChapaClient {
     /// use chapa_rust::{client::ChapaClient, config::ChapaConfigBuilder};
     /// dotenvy::dotenv().ok();
     /// let config = ChapaConfigBuilder::new().build().unwrap();
-    /// let mut client = ChapaClient::from_config(config);
+    /// let mut client = ChapaClient::from_config(config).unwrap();
     /// let tx_ref = "your_transaction_reference";
     /// let response = client.verify_transaction(tx_ref).await.unwrap();
     /// }
@@ -206,5 +206,260 @@ impl ChapaClient {
             .await?;
 
         Ok(response)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use mockito::{self, Matcher};
+
+    #[tokio::test]
+    async fn test_get_banks() {
+        let mut server = mockito::Server::new_async().await;
+        let success = server
+            .mock("GET", "/v1/banks")
+            .match_header(
+                "authorization",
+                Matcher::Regex(r#"^Bearer .+$"#.to_string()),
+            )
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(
+                serde_json::to_string(&serde_json::json!({
+                "message": "Banks retrieved",
+                "data": [
+                    {
+                        "id": 130,
+                        "slug": "abay_bank",
+                        "swift": "ABAYETAA",
+                        "name": "Abay Bank",
+                        "acct_length": 16,
+                        "country_id": 1,
+                        "is_mobilemoney": null,
+                        "is_active": 1,
+                        "is_rtgs": 1,
+                        "active": 1,
+                        "is_24hrs": null,
+                        "created_at": "2023-01-24T04:28:30.000000Z",
+                        "updated_at": "2024-08-03T08:10:24.000000Z",
+                        "currency": "ETB"
+                    }
+                ]
+                        }))
+                .unwrap(),
+            )
+            .create_async()
+            .await;
+
+        let failure = server
+            .mock("GET", "/v1/banks")
+            .match_header(
+                "authorization",
+                Matcher::Regex(r#"^Bearer .+$"#.to_string()),
+            )
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(
+                serde_json::to_string(&serde_json::json!({
+                "message": "Invalid API Key	",
+                "status": "failed",
+                "data": null
+                }))
+                .unwrap(),
+            )
+            .create_async()
+            .await;
+
+        let config = ChapaConfigBuilder::new()
+            .base_url(server.url())
+            .api_key("CHASECK-xxxxxxxxxxxxxxxx")
+            .build()
+            .unwrap();
+        let mut client = ChapaClient::from_config(config).unwrap();
+
+        // ACT for success
+        let response_success = client.get_banks().await.unwrap();
+        assert!(!response_success.message.is_empty());
+        assert!(response_success.data.is_some());
+
+        // ACT for failure
+        let response_failure = client.get_banks().await.unwrap();
+        assert!(!response_failure.message.is_empty());
+        // assert_eq!(response_failure.status, "failed");
+        assert!(response_failure.data.is_none());
+
+        success.assert_async().await;
+        failure.assert_async().await;
+    }
+
+    #[tokio::test]
+    async fn test_initialize_transaction() {
+        let mut server = mockito::Server::new_async().await;
+        let success = server
+            .mock("POST", "/v1/transaction/initialize")
+            .match_header(
+                "authorization",
+                Matcher::Regex(r#"^Bearer .+$"#.to_string()),
+            )
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(
+                serde_json::to_string(&serde_json::json!({
+                "message": "Hosted Link",
+                "status": "success",
+                "data": {
+                    "checkout_url": "https://checkout.chapa.co/checkout/payment/V38JyhpTygC9QimkJrdful9oEjih0heIv53eJ1MsJS6xG"
+                    }
+                }))
+                .unwrap(),
+            )
+            .create_async()
+            .await;
+
+        let failure = server
+            .mock("POST", "/v1/transaction/initialize")
+            .match_header(
+                "authorization",
+                Matcher::Regex(r#"^Bearer .+$"#.to_string()),
+            )
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(
+                serde_json::to_string(&serde_json::json!({
+                  "message": "Authorization required	",
+                  "status": "failed",
+                  "data": null
+                }))
+                .unwrap(),
+            )
+            .create_async()
+            .await;
+
+        let config = ChapaConfigBuilder::new()
+            .base_url(server.url())
+            .api_key("CHASECK-xxxxxxxxxxxxxxxx")
+            .build()
+            .unwrap();
+        let mut client = ChapaClient::from_config(config).unwrap();
+
+        let transaction_success = InitializeOptions {
+            amount: "100".to_string(),
+            currency: "ETB".to_string(),
+            email: Some("customer@gmail.com".to_string()),
+            first_name: Some("John".to_string()),
+            last_name: Some("Doe".to_string()),
+            tx_ref: String::from("some_generated_tax_ref"),
+            ..Default::default()
+        };
+        let transaction_failure = InitializeOptions {
+            ..Default::default()
+        };
+
+        // ACT for success
+        let response_success = client
+            .initialize_transaction(transaction_success)
+            .await
+            .unwrap();
+        assert_eq!(response_success.status, "success");
+        assert!(!response_success.message.is_empty());
+        assert!(response_success.data.is_some());
+
+        // ACT for failure
+        let response_failure = client
+            .initialize_transaction(transaction_failure)
+            .await
+            .unwrap();
+        assert_eq!(response_failure.status, "failed");
+        assert!(!response_failure.message.is_empty());
+        assert!(response_failure.data.is_none());
+
+        success.assert_async().await;
+        failure.assert_async().await;
+    }
+
+    #[tokio::test]
+    async fn test_verify_transaction() {
+        let mut server = mockito::Server::new_async().await;
+        let success = server
+            .mock("GET", "/v1/transaction/verify/chewatatest-6669")
+            .match_header(
+                "authorization",
+                Matcher::Regex(r#"^Bearer .+$"#.to_string()),
+            )
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(
+                serde_json::to_string(&serde_json::json!({
+                "message": "Payment details",
+                "status": "success",
+                "data": {
+                    "first_name": "Bilen",
+                    "last_name": "Gizachew",
+                    "email": "abebech_bekele@gmail.com",
+                    "currency": "ETB",
+                    "amount": 100,
+                    "charge": 3.5,
+                    "mode": "test",
+                    "method": "test",
+                    "type": "API",
+                    "status": "success",
+                    "reference": "6jnheVKQEmy",
+                    "tx_ref": "chewatatest-6669",
+                    "customization": {
+                        "title": "Payment for my favourite merchant",
+                        "description": "I love online payments",
+                        "logo": null
+                    },
+                    "meta": null,
+                    "created_at": "2023-02-02T07:05:23.000000Z",
+                    "updated_at": "2023-02-02T07:05:23.000000Z"
+                  }
+                }))
+                .unwrap(),
+            )
+            .create_async()
+            .await;
+
+        let failure = server
+            .mock("GET", "/v1/transaction/verify/chewatatest-6669")
+            .match_header(
+                "authorization",
+                Matcher::Regex(r#"^Bearer .+$"#.to_string()),
+            )
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(
+                serde_json::to_string(&serde_json::json!({
+                "message": "Invalid transaction or Transaction not found	",
+                "status": "failed",
+                "data": null
+                }))
+                .unwrap(),
+            )
+            .create_async()
+            .await;
+
+        let config = ChapaConfigBuilder::new()
+            .base_url(server.url())
+            .api_key("CHASECK_TEST-XXXXXXXXXXXXXXX")
+            .build()
+            .unwrap();
+        let mut client = ChapaClient::from_config(config).unwrap();
+
+        // ACT for success
+        let response_success = client.verify_transaction("chewatatest-6669").await.unwrap();
+        assert_eq!(response_success.status, "success");
+        assert!(!response_success.message.is_empty()); // NOTE: ckeck if it is empty because I suspect there might be a change if I put string comparison.
+        assert!(response_success.data.is_some());
+
+        // ACT for failure
+        let response_failure = client.verify_transaction("chewatatest-6669").await.unwrap();
+        assert_eq!(response_failure.status, "failed");
+        assert!(!response_failure.message.is_empty()); // NOTE: check if it is empty because I suspect there might be a change if I put string comparison.
+        assert!(response_failure.data.is_none());
+
+        success.assert_async().await;
+        failure.assert_async().await;
     }
 }

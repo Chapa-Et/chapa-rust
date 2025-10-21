@@ -7,7 +7,7 @@ async fn main() {
     dotenvy::dotenv().ok();
     // initialize a chapa client
     let config = ChapaConfigBuilder::new().build().unwrap();
-    let mut client = ChapaClient::from_config(config);
+    let mut client = ChapaClient::from_config(config).unwrap();
 
     let tx_ref = String::from("mail_order_injera");
     let test_transaction = InitializeOptions {

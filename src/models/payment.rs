@@ -113,7 +113,7 @@ pub struct VerifyData {
     /// The amount to be charged in the transaction.
     pub amount: f64,
     /// The charge for the transaction.
-    pub charge: Option<String>,
+    pub charge: Option<f64>, // TODO: sometimes works with Option<String> but the documentation is floating point. check it out.
     /// The mode of the transaction.
     pub mode: Option<String>,
     /// The payment method used in the transaction.
