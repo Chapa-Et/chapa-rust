@@ -28,7 +28,12 @@ use crate::{
     error::{ChapaError, Result},
     models::{
         payment::InitializeOptions,
-        response::{GetBanksResponse, InitializeResponse, VerifyResponse},
+        response::{
+            BulkTransferResponse, GetBanksResponse, GetTransfersResponse, InitializeResponse,
+            TransactionLogsResponse, TransferResponse, VerifyBulkTransferResponse, VerifyResponse,
+            VerifyTransferResponse,
+        },
+        transfer::{BulkTransferOptions, TransferOptions},
     },
 };
 
@@ -110,14 +115,14 @@ impl ChapaClient {
     /// deserializes the JSON response into a [`GetBanksResponse`] struct.
     /// # Example
     /// ```
-    /// #[tokio::main]
-    /// async fn main() {
     /// use chapa_rust::client::ChapaClient;
     /// use chapa_rust::config::ChapaConfigBuilder;
-    /// dotenvy::dotenv().ok();
-    /// let config = ChapaConfigBuilder::new().build().unwrap();
-    /// let mut client = ChapaClient::from_config(config).unwrap();
-    /// let banks = client.get_banks().await.unwrap();
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     dotenvy::dotenv().ok();
+    ///     let config = ChapaConfigBuilder::new().build().unwrap();
+    ///     let mut client = ChapaClient::from_config(config).unwrap();
+    ///     let banks = client.get_banks().await.unwrap();
     /// }
     /// ```
     /// # Errors
@@ -131,6 +136,10 @@ impl ChapaClient {
         Ok(response)
     }
 
+    /*
+     * Transaction related endpoints
+     */
+
     /// Initializes a new transaction with Chapa.
     ///
     /// Sends a `POST` request to `/transaction/initialize` with transaction
@@ -141,13 +150,13 @@ impl ChapaClient {
     ///
     /// # Example
     /// ```rust,no_run
+    /// use chapa_rust::{client::ChapaClient, config::ChapaConfigBuilder, models::payment::InitializeOptions};
     /// #[tokio::main]
     /// async fn main() {
-    /// use chapa_rust::{client::ChapaClient, config::ChapaConfigBuilder, models::payment::InitializeOptions};
-    /// dotenvy::dotenv().ok();
-    /// let config = ChapaConfigBuilder::new().build().unwrap();
-    /// let mut client = ChapaClient::from_config(config).unwrap();
-    /// let transaction = InitializeOptions {
+    ///     dotenvy::dotenv().ok();
+    ///     let config = ChapaConfigBuilder::new().build().unwrap();
+    ///     let mut client = ChapaClient::from_config(config).unwrap();
+    ///     let transaction = InitializeOptions {
     ///         amount: "100".to_string(),
     ///         currency: "ETB".to_string(),
     ///         email: Some("customer@gmail.com".to_string()),
@@ -156,7 +165,7 @@ impl ChapaClient {
     ///         tx_ref: String::from("some_generated_tax_ref"),
     ///         ..Default::default()
     ///     };
-    /// let response = client.initialize_transaction(transaction).await.unwrap();
+    ///     let response = client.initialize_transaction(transaction).await.unwrap();
     /// }
     /// ```
     /// # Errors
@@ -187,13 +196,13 @@ impl ChapaClient {
     /// # Example
     /// ```
     /// #[tokio::main]
-    /// async fn main() {
     /// use chapa_rust::{client::ChapaClient, config::ChapaConfigBuilder};
-    /// dotenvy::dotenv().ok();
-    /// let config = ChapaConfigBuilder::new().build().unwrap();
-    /// let mut client = ChapaClient::from_config(config).unwrap();
-    /// let tx_ref = "your_transaction_reference";
-    /// let response = client.verify_transaction(tx_ref).await.unwrap();
+    /// async fn main() {
+    ///     dotenvy::dotenv().ok();
+    ///     let config = ChapaConfigBuilder::new().build().unwrap();
+    ///     let mut client = ChapaClient::from_config(config).unwrap();
+    ///     let tx_ref = "your_transaction_reference";
+    ///     let response = client.verify_transaction(tx_ref).await.unwrap();
     /// }
     /// ```
     /// # Errors
@@ -203,6 +212,107 @@ impl ChapaClient {
 
         let response = self
             .make_request::<VerifyResponse, ()>(endpoint.as_str(), "GET", None)
+            .await?;
+
+        Ok(response)
+    }
+
+    /// Retrieves the logs for a specific transaction using its reference ID.
+    ///
+    /// This function makes a `GET` request to `/transaction/events/{tx_ref}`
+    /// and returns the transaction logs.
+    /// # Parameters
+    /// - `tx_ref`: A unique reference string identifying the transaction.
+    pub async fn get_transaction_logs(&mut self, tx_ref: &str) -> Result<TransactionLogsResponse> {
+        let endpoint = format!("transaction/events/{}", tx_ref);
+
+        let response = self
+            .make_request::<TransactionLogsResponse, ()>(endpoint.as_str(), "GET", None)
+            .await?;
+
+        Ok(response)
+    }
+
+    //
+    //  ================================= Transfer related endpoints =================================
+    //
+
+    /// Initiates a bank transfer using the provided transfer options.
+    ///
+    /// Sends a `POST` request to `/transfers` with transfer details provided in the [`TransferOptions`] struct.
+    /// # Parameters
+    /// - `options`: The transfer details (account number, bank code, amount, etc.)
+    pub async fn transfer(&mut self, options: TransferOptions) -> Result<TransferResponse> {
+        let response = self
+            .make_request::<TransferResponse, TransferOptions>("transfers", "POST", Some(options))
+            .await?;
+
+        Ok(response)
+    }
+
+    /// Verifies the status of a bank transfer using its reference ID.
+    ///
+    /// This function makes a `GET` request to `/transfers/verify/{reference}`
+    /// and returns the transfer’s verification details.
+    /// # Parameters
+    /// - `reference`: A unique reference string identifying the transfer.
+    pub async fn verify_transfer(&mut self, reference: &str) -> Result<VerifyTransferResponse> {
+        let endpoint = format!("transfers/verify/{}", reference);
+
+        let response = self
+            .make_request::<VerifyTransferResponse, ()>(endpoint.as_str(), "GET", None)
+            .await?;
+
+        Ok(response)
+    }
+
+    /// Initiates a bulk bank transfer using the provided bulk transfer options.
+    ///
+    /// Sends a `POST` request to `/bulk-transfers` with bulk transfer details provided in the [`BulkTransferOptions`] struct.
+    /// # Parameters
+    /// - `options`: The bulk transfer details (currency, list of transfers, etc.)
+    pub async fn bulk_transfer(
+        &mut self,
+        options: BulkTransferOptions,
+    ) -> Result<BulkTransferResponse> {
+        let response = self
+            .make_request::<BulkTransferResponse, BulkTransferOptions>(
+                "bulk-transfers",
+                "POST",
+                Some(options),
+            )
+            .await?;
+
+        Ok(response)
+    }
+
+    /// Verifies the status of a bulk bank transfer using its batch ID.
+    ///
+    /// This function makes a `GET` request to `/transfers?batch_id={batch_id}`
+    /// and returns the bulk transfer’s verification details.
+    /// # Parameters
+    /// - `batch_id`: The unique identifier for the bulk transfer batch.
+    /// # Errors
+    /// Returns an error if the request fails or the response cannot be deserialized.
+    pub async fn verify_bulk_transfer(
+        &mut self,
+        batch_id: &str,
+    ) -> Result<VerifyBulkTransferResponse> {
+        let endpoint = format!("transfers?batch_id={}", batch_id);
+
+        let response = self
+            .make_request::<VerifyBulkTransferResponse, ()>(endpoint.as_str(), "GET", None)
+            .await?;
+
+        Ok(response)
+    }
+
+    /// Retrieves a list of all bank transfers.
+    ///
+    /// This function makes a `GET` request to `/transfers` and returns the list of transfers along with pagination metadata.
+    pub async fn get_transfers(&mut self) -> Result<GetTransfersResponse> {
+        let response = self
+            .make_request::<GetTransfersResponse, ()>("transfers", "GET", None)
             .await?;
 
         Ok(response)

@@ -81,7 +81,7 @@ pub struct CheckoutURL {
 /// Represents the detailed data received when verifying a payment transaction.
 // TODO: Adjust field types as needed based on actual API response, I made most optional to avoid deserialization issues
 #[derive(Debug, Deserialize)]
-pub struct VerifyData {
+pub struct VerifyPaymentData {
     /// The first name of the customer.
     pub first_name: Option<String>,
     /// The last name of the customer.
@@ -113,5 +113,23 @@ pub struct VerifyData {
     /// The timestamp when the transaction was created.
     pub created_at: DateTime<Utc>,
     /// The timestamp when the transaction was last updated.
+    pub updated_at: DateTime<Utc>,
+}
+
+// ------------------------------------- Transaction Timeline ---------------------------------------------
+
+/// Represents a single event in the transaction timeline.
+#[derive(Debug, Deserialize)]
+pub struct TransactionLog {
+    /// The unique identifier of the transaction log item.
+    pub item: u32,
+    /// The message associated with the transaction event.
+    pub message: String,
+    #[serde(rename = "type")]
+    /// The type of the transaction event.
+    pub event_type: String,
+    /// The timestamp when the transaction event was created.
+    pub created_at: DateTime<Utc>,
+    /// The timestamp when the transaction event was last updated.
     pub updated_at: DateTime<Utc>,
 }
