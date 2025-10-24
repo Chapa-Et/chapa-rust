@@ -25,5 +25,4 @@
 pub mod bank;
 pub mod payment;
 pub mod response;
-pub mod transaction;
 pub mod transfer;

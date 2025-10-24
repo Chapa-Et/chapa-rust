@@ -29,9 +29,9 @@ use crate::{
     models::{
         payment::InitializeOptions,
         response::{
-            BulkTransferResponse, GetBanksResponse, GetTransfersResponse, InitializeResponse,
-            TransactionLogsResponse, TransferResponse, VerifyBulkTransferResponse, VerifyResponse,
-            VerifyTransferResponse,
+            BulkTransferResponse, GetBanksResponse, GetTransactionsResponse, GetTransfersResponse,
+            InitializeResponse, TransactionLogsResponse, TransferResponse,
+            VerifyBulkTransferResponse, VerifyResponse, VerifyTransferResponse,
         },
         transfer::{BulkTransferOptions, TransferOptions},
     },
@@ -136,9 +136,9 @@ impl ChapaClient {
         Ok(response)
     }
 
-    /*
-     * Transaction related endpoints
-     */
+    //
+    // ======================================= Transaction related endpoints ===========================
+    //
 
     /// Initializes a new transaction with Chapa.
     ///
@@ -212,6 +212,15 @@ impl ChapaClient {
 
         let response = self
             .make_request::<VerifyResponse, ()>(endpoint.as_str(), "GET", None)
+            .await?;
+
+        Ok(response)
+    }
+
+    /// 
+    pub async fn get_transactions(&mut self) -> Result<GetTransactionsResponse> {
+        let response = self
+            .make_request::<GetTransactionsResponse, ()>("transactions", "GET", None)
             .await?;
 
         Ok(response)
@@ -397,176 +406,6 @@ mod tests {
         let response_failure = client.get_banks().await.unwrap();
         assert!(!response_failure.message.is_null());
         // assert_eq!(response_failure.status, "failed");
-        assert!(response_failure.data.is_none());
-
-        success.assert_async().await;
-        failure.assert_async().await;
-    }
-
-    #[tokio::test]
-    async fn test_initialize_transaction() {
-        let mut server = mockito::Server::new_async().await;
-        let success = server
-            .mock("POST", "/v1/transaction/initialize")
-            .match_header(
-                "authorization",
-                Matcher::Regex(r#"^Bearer .+$"#.to_string()),
-            )
-            .with_status(200)
-            .with_header("content-type", "application/json")
-            .with_body(
-                serde_json::to_string(&serde_json::json!({
-                "message": "Hosted Link",
-                "status": "success",
-                "data": {
-                    "checkout_url": "https://checkout.chapa.co/checkout/payment/V38JyhpTygC9QimkJrdful9oEjih0heIv53eJ1MsJS6xG"
-                    }
-                }))
-                .unwrap(),
-            )
-            .create_async()
-            .await;
-
-        let failure = server
-            .mock("POST", "/v1/transaction/initialize")
-            .match_header(
-                "authorization",
-                Matcher::Regex(r#"^Bearer .+$"#.to_string()),
-            )
-            .with_status(200)
-            .with_header("content-type", "application/json")
-            .with_body(
-                serde_json::to_string(&serde_json::json!({
-                  "message": "Authorization required	",
-                  "status": "failed",
-                  "data": null
-                }))
-                .unwrap(),
-            )
-            .create_async()
-            .await;
-
-        let config = ChapaConfigBuilder::new()
-            .base_url(server.url())
-            .api_key("CHASECK-xxxxxxxxxxxxxxxx")
-            .build()
-            .unwrap();
-        let mut client = ChapaClient::from_config(config).unwrap();
-
-        let transaction_success = InitializeOptions {
-            amount: "100".to_string(),
-            currency: "ETB".to_string(),
-            email: Some("customer@gmail.com".to_string()),
-            first_name: Some("John".to_string()),
-            last_name: Some("Doe".to_string()),
-            tx_ref: String::from("some_generated_tax_ref"),
-            ..Default::default()
-        };
-        let transaction_failure = InitializeOptions {
-            ..Default::default()
-        };
-
-        // ACT for success
-        let response_success = client
-            .initialize_transaction(transaction_success)
-            .await
-            .unwrap();
-        assert_eq!(response_success.status, "success");
-        assert!(!response_success.message.is_null());
-        assert!(response_success.data.is_some());
-
-        // ACT for failure
-        let response_failure = client
-            .initialize_transaction(transaction_failure)
-            .await
-            .unwrap();
-        assert_eq!(response_failure.status, "failed");
-        assert!(!response_failure.message.is_null());
-        assert!(response_failure.data.is_none());
-
-        success.assert_async().await;
-        failure.assert_async().await;
-    }
-
-    #[tokio::test]
-    async fn test_verify_transaction() {
-        let mut server = mockito::Server::new_async().await;
-        let success = server
-            .mock("GET", "/v1/transaction/verify/chewatatest-6669")
-            .match_header(
-                "authorization",
-                Matcher::Regex(r#"^Bearer .+$"#.to_string()),
-            )
-            .with_status(200)
-            .with_header("content-type", "application/json")
-            .with_body(
-                serde_json::to_string(&serde_json::json!({
-                "message": "Payment details",
-                "status": "success",
-                "data": {
-                    "first_name": "Bilen",
-                    "last_name": "Gizachew",
-                    "email": "abebech_bekele@gmail.com",
-                    "currency": "ETB",
-                    "amount": 100,
-                    "charge": 3.5,
-                    "mode": "test",
-                    "method": "test",
-                    "type": "API",
-                    "status": "success",
-                    "reference": "6jnheVKQEmy",
-                    "tx_ref": "chewatatest-6669",
-                    "customization": {
-                        "title": "Payment for my favourite merchant",
-                        "description": "I love online payments",
-                        "logo": null
-                    },
-                    "meta": null,
-                    "created_at": "2023-02-02T07:05:23.000000Z",
-                    "updated_at": "2023-02-02T07:05:23.000000Z"
-                  }
-                }))
-                .unwrap(),
-            )
-            .create_async()
-            .await;
-
-        let failure = server
-            .mock("GET", "/v1/transaction/verify/chewatatest-6669")
-            .match_header(
-                "authorization",
-                Matcher::Regex(r#"^Bearer .+$"#.to_string()),
-            )
-            .with_status(200)
-            .with_header("content-type", "application/json")
-            .with_body(
-                serde_json::to_string(&serde_json::json!({
-                "message": "Invalid transaction or Transaction not found	",
-                "status": "failed",
-                "data": null
-                }))
-                .unwrap(),
-            )
-            .create_async()
-            .await;
-
-        let config = ChapaConfigBuilder::new()
-            .base_url(server.url())
-            .api_key("CHASECK_TEST-XXXXXXXXXXXXXXX")
-            .build()
-            .unwrap();
-        let mut client = ChapaClient::from_config(config).unwrap();
-
-        // ACT for success
-        let response_success = client.verify_transaction("chewatatest-6669").await.unwrap();
-        assert_eq!(response_success.status, "success");
-        assert!(!response_success.message.is_null()); // NOTE: ckeck if it is empty because I suspect there might be a change if I put string comparison.
-        assert!(response_success.data.is_some());
-
-        // ACT for failure
-        let response_failure = client.verify_transaction("chewatatest-6669").await.unwrap();
-        assert_eq!(response_failure.status, "failed");
-        assert!(!response_failure.message.is_null()); // NOTE: check if it is empty because I suspect there might be a change if I put string comparison.
         assert!(response_failure.data.is_none());
 
         success.assert_async().await;

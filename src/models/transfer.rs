@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 /// Represents the options required to initiate a bank transfer.
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct TransferOptions {
     #[serde(skip_serializing_if = "Option::is_none")]
     /// The name of the account holder.
@@ -32,7 +32,7 @@ pub struct VerifyTransferData {
     /// The bank account number.
     pub account_number: String,
     /// The mobile number of the account holder.
-    pub mobile: String,
+    pub mobile: Option<String>,
     /// The currency in which the transfer will be made.
     pub currency: String,
     /// The amount to be transferred.
@@ -44,7 +44,7 @@ pub struct VerifyTransferData {
     /// The method used for the transfer.
     pub transfer_method: String,
     /// The narration for the transfer.
-    pub narration: String,
+    pub narration: Option<String>,
     /// The unique identifier for the transfer.
     pub chapa_transfer_id: String,
     /// The bank code of the recipient's bank.
@@ -52,7 +52,7 @@ pub struct VerifyTransferData {
     /// The name of the recipient's bank.
     pub bank_name: String,
     /// The cross-party reference for the transfer.
-    pub cross_party_reference: String,
+    pub cross_party_reference: Option<String>,
     /// The IP address from which the transfer was initiated.
     pub ip_address: String,
     /// The status of the transfer.
@@ -67,7 +67,7 @@ pub struct VerifyTransferData {
 
 // ------------------------------------- Bulk Transfer Options ---------------------------------------------
 /// Represents the options required to initiate a bulk bank transfer.
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct BulkTransferOptions {
     /// The title for the bulk transfer batch.
     pub title: String,
@@ -79,7 +79,7 @@ pub struct BulkTransferOptions {
 
 /// Represents a single transfer entry in a bulk transfer request.
 /// It is almost similar to `TransferOptions` for a single transfer.
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct BulkData {
     #[serde(skip_serializing_if = "Option::is_none")]
     /// The name of the account holder.
@@ -137,13 +137,14 @@ pub struct TransferMeta {
     pub error: Value, // TODO: get clarification on the type of this field
 }
 
+// TODO: check which fields are optional in TransfersData
 /// Represents a single transfer entry in the list of transfers.
 #[derive(Debug, Deserialize)]
 pub struct TransfersData {
     /// The name of the account holder.
     pub account_name: String,
     /// The bank account number.
-    pub account_number: String,
+    pub account_number: Option<String>,
     /// The currency for the transfer.
     pub currency: String,
     /// The amount to be transferred.
@@ -159,11 +160,11 @@ pub struct TransfersData {
     /// The name of the recipient's bank.
     pub bank_name: String,
     /// The bank reference for the transfer.
-    pub bank_reference: String,
+    pub bank_reference: Option<String>,
     /// The status of the transfer.
     pub status: String,
     /// A unique reference for the transfer.
-    pub reference: String,
+    pub reference: Option<String>,
     /// The creation timestamp of the transfer.
     pub created_at: DateTime<Utc>,
     /// The last updated timestamp of the transfer.
