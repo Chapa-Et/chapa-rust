@@ -5,7 +5,7 @@ use serde_json::Value;
 
 use crate::models::{
     bank::Bank,
-    payment::{CheckoutURL, TransactionLog, VerifyPaymentData},
+    payment::{CheckoutURL, GetTransactionsData, TransactionLog, VerifyPaymentData},
     transfer::{BulkTransferData, TransferMeta, TransfersData, VerifyTransferData},
 };
 
@@ -45,15 +45,24 @@ fn unspecified_status() -> String {
 
 /// Type alias for GetBanksResponse, which contains a list of banks.
 pub type GetBanksResponse = ChapaResponse<Option<Vec<Bank>>>;
+
+//
+// ------------------------------------- Transaction Responses ---------------------------------------------
+//
+
 /// Type alias for InitializeResponse, which contains the checkout URL.
 pub type InitializeResponse = ChapaResponse<Option<CheckoutURL>>;
 /// Type alias for VerifyResponse, which contains the verification data.
 pub type VerifyResponse = ChapaResponse<Option<VerifyPaymentData>>;
 /// Type alias for TransactionLogsResponse, which contains a list of transaction logs.
 pub type TransactionLogsResponse = ChapaResponse<Option<Vec<TransactionLog>>>;
+/// Type alias for GetTransactionsResponse, which contains a list of transactions along with pagination data.
+pub type GetTransactionsResponse = ChapaResponse<Option<GetTransactionsData>>;
+
 //
 // ------------------------------------- Transfer Responses ---------------------------------------------
 //
+
 /// Type alias for Transfer response, which may contain an optional string (e.g., transfer ID).
 pub type TransferResponse = ChapaResponse<Option<String>>;
 /// Type alias for VerifyTransfer response, which contains the verification data for a transfer.
@@ -65,4 +74,4 @@ pub type GetTransfersResponse =
     ChapaResponseWithMeta<Option<Vec<TransfersData>>, Option<TransferMeta>>;
 /// Type alias for VerifyBulkTransferResponse, which contains bulk transfer verification data along with metadata.
 pub type VerifyBulkTransferResponse =
-    ChapaResponseWithMeta<Option<TransfersData>, Option<TransferMeta>>;
+    ChapaResponseWithMeta<Option<Vec<TransfersData>>, Option<TransferMeta>>;
