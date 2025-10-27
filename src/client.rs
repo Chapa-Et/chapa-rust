@@ -28,7 +28,6 @@ use crate::{
     error::{ChapaError, Result},
     models::{
         payment::InitializeOptions,
-        bank::Currency,
         response::{GetBanksResponse, InitializeResponse, VerifyResponse},
     },
 };
@@ -346,7 +345,7 @@ mod tests {
 
         let transaction_success = InitializeOptions {
             amount: "100".to_string(),
-            currency: Currency::ETB,
+            currency: crate::models::bank::Currency::ETB,
             email: Some("customer@gmail.com".to_string()),
             first_name: Some("John".to_string()),
             last_name: Some("Doe".to_string()),
