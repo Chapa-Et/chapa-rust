@@ -1,5 +1,6 @@
 //! Models related to bank transfers.
 
+use crate::models::bank::Currency;
 use serde::{Deserialize, Serialize};
 
 /// Represents the options required to initiate a bank transfer.
@@ -12,7 +13,7 @@ pub struct TransferOptions {
     /// The amount to be transferred.
     pub amount: String,
     /// The currency in which the transfer will be made.
-    pub currency: String,
+    pub currency: Currency,
     /// A unique reference for the transfer.
     pub reference: String,
     /// The bank code of the recipient's bank.

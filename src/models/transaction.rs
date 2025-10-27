@@ -1,4 +1,5 @@
 //! Models related to get_transactions API responses.
+use crate::models::bank::Currency;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
@@ -49,7 +50,7 @@ pub struct Transaction {
     /// The date and time when the transaction was created.
     pub created_at: DateTime<Utc>,
     /// The currency in which the transaction was made.
-    pub currency: String,
+    pub currency: Currency,
     /// The amount of money that is involved in the transaction.
     pub amount: String,
     /// The charge applied to the transaction.
