@@ -7,11 +7,12 @@
 //! ## Example
 //! ```rust,no_run
 //! use chapa_rust::models::payment::InitializeOptions;
+//! use chapa_rust::models::bank::Currency;
 //!
 //! // Create a transaction
 //! let tx = InitializeOptions {
 //!     amount: "100".to_string(),
-//!     currency: "ETB".to_string(),
+//!     currency: Currency::ETB,
 //!     email: Some("user@example.com".to_string()),
 //!     first_name: Some("John".to_string()),
 //!     last_name: Some("Doe".to_string()),

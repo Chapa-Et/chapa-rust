@@ -25,6 +25,7 @@
 //! ```
 //! use chapa_rust::client::ChapaClient;
 //! use chapa_rust::models::payment::InitializeOptions;
+//! use chapa_rust::models::bank::Currency;
 //!
 //! #[tokio::main]
 //! async fn main() {
@@ -32,7 +33,7 @@
 //!
 //!     let req = InitializeOptions {
 //!         amount: "100".to_string(),
-//!         currency: "ETB".to_string(),
+//!         currency: Currency::ETB,
 //!         email: Some("customer@example.com".to_string()),
 //!         first_name: Some("John".to_string()),
 //!         last_name: Some("Doe".to_string()),

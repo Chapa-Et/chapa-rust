@@ -28,6 +28,7 @@ use crate::{
     error::{ChapaError, Result},
     models::{
         payment::InitializeOptions,
+        bank::Currency,
         response::{GetBanksResponse, InitializeResponse, VerifyResponse},
     },
 };
@@ -143,13 +144,13 @@ impl ChapaClient {
     /// ```rust,no_run
     /// #[tokio::main]
     /// async fn main() {
-    /// use chapa_rust::{client::ChapaClient, config::ChapaConfigBuilder, models::payment::InitializeOptions};
+    /// use chapa_rust::{client::ChapaClient, config::ChapaConfigBuilder, models::payment::InitializeOptions, models::bank::Currency};
     /// dotenvy::dotenv().ok();
     /// let config = ChapaConfigBuilder::new().build().unwrap();
     /// let mut client = ChapaClient::from_config(config).unwrap();
     /// let transaction = InitializeOptions {
     ///         amount: "100".to_string(),
-    ///         currency: "ETB".to_string(),
+    ///         currency: Currency::ETB,
     ///         email: Some("customer@gmail.com".to_string()),
     ///         first_name: Some("John".to_string()),
     ///         last_name: Some("Doe".to_string()),
@@ -345,7 +346,7 @@ mod tests {
 
         let transaction_success = InitializeOptions {
             amount: "100".to_string(),
-            currency: "ETB".to_string(),
+            currency: Currency::ETB,
             email: Some("customer@gmail.com".to_string()),
             first_name: Some("John".to_string()),
             last_name: Some("Doe".to_string()),

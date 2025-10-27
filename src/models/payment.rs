@@ -2,6 +2,7 @@
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use crate::models::bank::Currency;
 
 // TODO: check the type of `amount` field has some inconsistency in the docs, sometimes it's string sometimes number
 // ------------------------------------- Initialize Payment ---------------------------------------------
@@ -18,7 +19,7 @@ pub struct InitializeOptions {
     /// The phone number of the customer.
     pub phone_number: Option<String>,
     /// The currency for the transaction (e.g., "ETB", "USD").
-    pub currency: String,
+    pub currency: Currency,
     /// The amount to be charged in the transaction.
     pub amount: String,
     /// A unique reference for the transaction.
@@ -89,7 +90,7 @@ pub struct VerifyData {
     /// The email address of the customer.
     pub email: Option<String>,
     /// The currency for the transaction (e.g., "ETB", "USD").
-    pub currency: Option<String>,
+    pub currency: Option<Currency>,
     /// The amount to be charged in the transaction.
     pub amount: f64,
     /// The charge for the transaction.

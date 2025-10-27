@@ -2,6 +2,7 @@
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use std::default::Default;
 
 /// Represents a single bank entry from Chapa’s bank list.
 #[derive(Debug, Serialize, Deserialize)]
@@ -35,4 +36,10 @@ pub enum Currency {
     ETB,
     /// United States Dollar
     USD,
+}
+
+impl Default for Currency {
+    fn default() -> Self {
+        Self::ETB
+    }
 }
