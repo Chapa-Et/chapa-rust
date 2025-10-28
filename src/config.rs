@@ -61,20 +61,20 @@ const PLACEHOLDER_API_KEY: &str = "placeholder_api_key";
 
 /// The `ChapaConfig` struct provides a centralized configuration mechanism for
 /// interacting with an external API. It encapsulates essential settings such as
-/// the API key, base URL, default headers, and request timeout duration.
+/// the API key, base URL, API version, default headers, and request timeout duration.
 #[derive(Debug, Clone)]
 pub struct ChapaConfig {
     /// The API key required for authentication with the external service.
     /// [more](https://developer.chapa.co/dashboard/quick-start) on api key.
-    pub api_key: String,
+    pub(crate) api_key: String,
     /// The base URL for the external API, usually it's `https://api.chapa.co`
-    pub base_url: String,
+    pub(crate) base_url: String,
     /// The version of the API to be used.
-    pub version: String,
+    pub(crate) version: String,
     /// Default headers to be included in every API request.
-    pub default_headers: HashMap<String, String>,
+    pub(crate) default_headers: HashMap<String, String>,
     /// Request timeout duration. default to 30s.
-    pub timeout: Duration,
+    pub(crate) timeout: Duration,
 }
 
 impl ChapaConfig {

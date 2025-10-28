@@ -4,7 +4,7 @@ use serde::Deserialize;
 use serde_json::Value;
 
 use crate::models::{
-    bank::Bank,
+    bank::{BalanceData, Bank, SwapData},
     payment::{CheckoutURL, GetTransactionsData, TransactionLog, VerifyPaymentData},
     transfer::{BulkTransferData, TransferMeta, TransfersData, VerifyTransferData},
 };
@@ -45,6 +45,10 @@ fn unspecified_status() -> String {
 
 /// Type alias for GetBanksResponse, which contains a list of banks.
 pub type GetBanksResponse = ChapaResponse<Option<Vec<Bank>>>;
+/// Type alias for GetBalancesResponse, which contains balance data.
+pub type GetBalancesResponse = ChapaResponse<Option<Vec<BalanceData>>>;
+/// Type alias for SwapResponse, which contains swap data.
+pub type SwapResponse = ChapaResponse<Option<SwapData>>;
 
 //
 // ------------------------------------- Transaction Responses ---------------------------------------------
