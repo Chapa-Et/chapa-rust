@@ -28,11 +28,13 @@ use crate::{
     error::{ChapaError, Result},
     models::{
         bank::SwapOptions,
+        direct_charge::{DirectChargeOptions, DirectChargeType, VerifyDirectChargeOption},
         payment::InitializeOptions,
         response::{
-            BulkTransferResponse, GetBalancesResponse, GetBanksResponse, GetTransactionsResponse,
-            GetTransfersResponse, InitializeResponse, SwapResponse, TransactionLogsResponse,
-            TransferResponse, VerifyBulkTransferResponse, VerifyResponse, VerifyTransferResponse,
+            BulkTransferResponse, DirectChargeResponse, DirectChargeVerifyResponse,
+            GetBalancesResponse, GetBanksResponse, GetTransactionsResponse, GetTransfersResponse,
+            InitializeResponse, SwapResponse, TransactionLogsResponse, TransferResponse,
+            VerifyBulkTransferResponse, VerifyResponse, VerifyTransferResponse,
         },
         transfer::{BulkTransferOptions, TransferOptions},
     },
@@ -385,9 +387,69 @@ impl ChapaClient {
     /// Retrieves a list of all bank transfers.
     ///
     /// This function makes a `GET` request to `/transfers` and returns the list of transfers along with pagination metadata.
+    /// # Errors
+    /// Returns an error if the request fails or the response cannot be deserialized.
     pub async fn get_transfers(&mut self) -> Result<GetTransfersResponse> {
         let response = self
             .make_request::<GetTransfersResponse, ()>("transfers", "GET", None)
+            .await?;
+
+        Ok(response)
+    }
+
+    //
+    // ======================================= Direct charge endpoints ===========================
+    //
+
+    /// Initiates a direct charge using the provided direct charge options.
+    ///
+    /// Sends a `POST` request to `/charges?type={type}` with direct charge details provided in the [`DirectChargeOptions`] struct.
+    /// # Parameters
+    /// - `options`: The direct charge details (amount, currency, customer info, payment type, etc.)
+    /// # Errors
+    /// Returns an error if the request fails or if the response cannot be deserialized.
+    pub async fn direct_charge(
+        &mut self,
+        ty: &DirectChargeType,
+        options: DirectChargeOptions,
+    ) -> Result<DirectChargeResponse> {
+        let endpoint = format!(
+            "charges?type={}",
+            serde_json::to_string(ty)?.replace("\"", "")
+        );
+        let response = self
+            .make_request::<DirectChargeResponse, DirectChargeOptions>(
+                endpoint.as_str(),
+                "POST",
+                Some(options),
+            )
+            .await?;
+
+        Ok(response)
+    }
+
+    /// Verifies a direct charge using the provided verification options.
+    ///
+    /// Sends a `POST` request to `/validate?type={type}` with verification details provided in the [`VerifyDirectChargeOption`] struct.
+    /// # Parameters
+    /// - `options`: The verification details (reference ID, client ID, payment type, etc.)
+    /// # Errors
+    /// Returns an error if the request fails or if the response cannot be deserialized.
+    pub async fn verify_direct_charge(
+        &mut self,
+        ty: &DirectChargeType,
+        options: VerifyDirectChargeOption,
+    ) -> Result<DirectChargeVerifyResponse> {
+        let endpoint = format!(
+            "validate?type={}",
+            serde_json::to_string(ty)?.replace("\"", "")
+        );
+        let response = self
+            .make_request::<DirectChargeVerifyResponse, VerifyDirectChargeOption>(
+                endpoint.as_str(),
+                "POST",
+                Some(options),
+            )
             .await?;
 
         Ok(response)

@@ -5,6 +5,7 @@ use serde_json::Value;
 
 use crate::models::{
     bank::{BalanceData, Bank, SwapData},
+    direct_charge::DirectChargeData,
     payment::{CheckoutURL, GetTransactionsData, TransactionLog, VerifyPaymentData},
     transfer::{BulkTransferData, TransferMeta, TransfersData, VerifyTransferData},
 };
@@ -79,3 +80,29 @@ pub type GetTransfersResponse =
 /// Type alias for VerifyBulkTransferResponse, which contains bulk transfer verification data along with metadata.
 pub type VerifyBulkTransferResponse =
     ChapaResponseWithMeta<Option<Vec<TransfersData>>, Option<TransferMeta>>;
+
+//
+// ----------------------------------- Direct Charge Responses -------------------------------------------
+//
+
+/// Type alias for DirectChargeResponse, which contains direct charge data.
+pub type DirectChargeResponse = ChapaResponse<Option<DirectChargeData>>;
+// Note: New struct because there is inconsistency between the happy path and the failed path of direct charge verification response
+/// The response received after verifying a direct charge.
+#[derive(Debug, Clone, Deserialize)]
+pub struct DirectChargeVerifyResponse {
+    /// The status message of the response.
+    pub message: String,
+    #[serde(default = "unspecified_status")]
+    /// The status of the response.
+    pub status: String,
+    #[serde(default)]
+    /// The data section of the response.
+    pub data: Option<String>,
+    /// The transaction reference.
+    #[serde(default)]
+    pub trx_ref: Option<String>,
+    /// The processor ID.
+    #[serde(default)]
+    pub processor_id: Option<String>,
+}
