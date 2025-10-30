@@ -58,6 +58,8 @@ use std::time::Duration;
 use crate::error::{ChapaError, Result};
 
 const PLACEHOLDER_API_KEY: &str = "placeholder_api_key";
+#[cfg(feature = "encryption")]
+const PLACEHOLDER_ENCRYPTION_KEY: &str = "placeholder_encryption_key";
 
 /// The `ChapaConfig` struct provides a centralized configuration mechanism for
 /// interacting with an external API. It encapsulates essential settings such as
@@ -75,6 +77,12 @@ pub struct ChapaConfig {
     pub(crate) default_headers: HashMap<String, String>,
     /// Request timeout duration. default to 30s.
     pub(crate) timeout: Duration,
+
+    /// Encryption key for encrypting sensitive data if the `encryption` feature is enabled.
+    /// [more](https://developer.chapa.co/dashboard/quick-start) on encryption key.
+    #[cfg(feature = "encryption")]
+    #[allow(dead_code)]
+    pub(crate) encryption_key: String,
 }
 
 impl ChapaConfig {
@@ -100,6 +108,11 @@ pub struct ChapaConfigBuilder {
     default_headers: HashMap<String, String>,
     /// Request timeout duration. default to 30s.
     timeout: Option<Duration>,
+
+    /// Encryption key for encrypting sensitive data if the `encryption` feature is enabled.
+    /// [more](https://developer.chapa.co/dashboard/quick-start) on encryption key.
+    #[cfg(feature = "encryption")]
+    pub(crate) encryption_key: Option<String>,
 }
 
 impl ChapaConfigBuilder {
@@ -138,10 +151,22 @@ impl ChapaConfigBuilder {
         self
     }
 
+    /// Sets the encryption key if the `encryption` feature is enabled.
+    #[cfg(feature = "encryption")]
+    pub fn encryption_key(mut self, key: impl Into<String>) -> Self {
+        self.encryption_key = Some(key.into());
+        self
+    }
+
     /// Finalizes the configuration and validates it before use.
     pub fn build(self) -> Result<ChapaConfig> {
         if self.api_key.is_none() || self.api_key == Some(PLACEHOLDER_API_KEY.to_string()) {
             return Err(ChapaError::MissingApiKey);
+        }
+
+        #[cfg(feature = "encryption")]
+        if self.encryption_key.is_none() {
+            return Err(ChapaError::MissingEncryptionKey);
         }
 
         Ok(ChapaConfig {
@@ -150,6 +175,8 @@ impl ChapaConfigBuilder {
             version: self.version.unwrap(),
             default_headers: self.default_headers,
             timeout: self.timeout.unwrap(),
+            #[cfg(feature = "encryption")]
+            encryption_key: self.encryption_key.unwrap(),
         })
     }
 }
@@ -161,6 +188,9 @@ impl Default for ChapaConfigBuilder {
 
         let default_api_key = std::env::var("CHAPA_API_PUBLIC_KEY")
             .unwrap_or_else(|_| PLACEHOLDER_API_KEY.to_string());
+        #[cfg(feature = "encryption")]
+        let default_encryption_key = std::env::var("ENCRYPTION_KEY")
+            .unwrap_or_else(|_| PLACEHOLDER_ENCRYPTION_KEY.to_string());
 
         Self {
             api_key: Some(default_api_key),
@@ -168,15 +198,16 @@ impl Default for ChapaConfigBuilder {
             version: Some("v1".to_string()),
             default_headers: headers,
             timeout: Some(Duration::from_secs(30)),
+            #[cfg(feature = "encryption")]
+            encryption_key: Some(default_encryption_key),
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use std::env;
-
     use super::*;
+    use std::env;
 
     #[test]
     fn test_default_config() {
@@ -185,10 +216,14 @@ mod tests {
         let config: ChapaConfig;
         unsafe {
             env::set_var("CHAPA_API_PUBLIC_KEY", "test_api_key_123");
+            #[cfg(feature = "encryption")]
+            env::set_var("ENCRYPTION_KEY", "test_encryption_key_123");
             config = ChapaConfig::builder()
                 .build()
                 .expect("Failed to build config");
             env::remove_var("CHAPA_API_PUBLIC_KEY");
+            #[cfg(feature = "encryption")]
+            env::remove_var("ENCRYPTION_KEY");
         }
         assert_eq!(config.base_url, "https://api.chapa.co");
         assert_eq!(config.version, "v1");
@@ -198,14 +233,16 @@ mod tests {
 
     #[test]
     fn test_builder_pattern() {
-        let config = ChapaConfig::builder()
+        let builder = ChapaConfig::builder()
             .base_url("http://localhost:8080/dev")
             .version("v2")
             .timeout(Duration::from_secs(5))
             .api_key("my-secret-key-123")
-            .add_header("X-Client-ID", "chapa-cli")
-            .build()
-            .expect("Failed to build config");
+            .add_header("X-Client-ID", "chapa-cli");
+        #[cfg(feature = "encryption")]
+        let builder = builder.encryption_key("test-encryption-key");
+
+        let config = builder.build().expect("Failed to build config");
 
         assert_eq!(config.base_url, "http://localhost:8080/dev");
         assert_eq!(config.timeout.as_secs(), 5);

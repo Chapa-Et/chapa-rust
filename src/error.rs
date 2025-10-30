@@ -12,6 +12,12 @@ pub enum ChapaError {
         "API Key is required but not set. Please set it using the CHAPA_API_PUBLIC_KEY environment variable or via the builder's api_key() method."
     )]
     MissingApiKey,
+    #[cfg(feature = "encryption")]
+    /// Indicates that the encryption key is missing in the configuration.
+    #[error(
+        "Encryption Key is required but not set. Please set it using the ENCRYPTION_KEY environment variable or via the builder's encryption_key() method."
+    )]
+    MissingEncryptionKey,
     /// Indicates that a network error occurred.
     #[error("Network error occurred")]
     NetworkError(#[from] reqwest::Error),
