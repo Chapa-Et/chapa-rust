@@ -43,4 +43,4 @@ clean:
 # Generate documentation for the project with no dependencies
 doc:
 	@echo "Generating documentation..."
-	cargo doc --no-deps
+	cargo doc --no-deps --all-features

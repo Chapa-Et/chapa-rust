@@ -91,6 +91,7 @@ dependencies = [
  "des",
  "dotenvy",
  "mockito",
+ "rand",
  "reqwest",
  "serde",
  "serde_json",

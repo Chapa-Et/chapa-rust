@@ -34,6 +34,7 @@ chrono = { version = "0.4.42", features = ["serde"] }
 serde_json = "1.0.145"
 des = { version = "0.8.1", optional = true }
 base64 = { version = "0.22.1", optional = true }
+rand = { version = "0.9.2", optional = true }
 
 [dev-dependencies]
 tokio = { version = "1", features = ["full"] }
@@ -45,3 +46,4 @@ all-features = true
 [features]
 default = []
 encryption = ["dep:des", "dep:base64"]
+utils = ["dep:rand"]
