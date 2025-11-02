@@ -39,7 +39,7 @@ Comprehensive documentation is available on [Docs.rs](https://docs.rs/chapa-rust
 `chapa-rust` is an **asynchronous, type-safe Rust SDK** for the [Chapa Payment API](https://developer.chapa.co/).  
 It allows developers to easily integrate Chapa’s payment, transfer, and verification services in their Rust projects.
 
-> ⚠️ **Note:** This is a pre-release version (`v0.1.0-alpha.1`) and is currently distributed directly via Git.  
+> ⚠️ **Note:** This is a pre-release version (`v0.1.0`) and is currently distributed directly via Git.  
 > The API may still change slightly before the stable `v1.0.0` release.
 
 ---
@@ -172,10 +172,20 @@ You can expect a similar response in the following format to be printed to the t
 
 > Using the `tx_ref` we used in the `InitializeOption` struct, you can request to verify the transaction using the `client.verify_transaction(tx_ref)` method. Refer to the [examples folder](https://github.com/Chapa-Et/chapa-rust/tree/main/examples/verify_transaction) for more.
 
-
+See the source of each example:
+- [examples/get_banks.rs](examples/get_banks.rs)
+- [examples/initialize_transaction.rs](examples/initialize_transaction.rs)
+- [examples/verify_transaction.rs](examples/verify_transaction.rs)
+- Additional examples: [examples/](examples/)
 
 ## Contribution
 If you find a bug or have any suggestions, please feel free to open an issue or a pull request.
 
+Thank you to all the contributors who have helped make this project better!
+
+<a href="https://github.com/Chapa-Et/chapa-rust/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=Chapa-Et/chapa-rust&max=30&columns=10" />
+</a>
+
 ## License
-This open source library is under the terms of the MIT license.
+This open source library is under the terms of the [MIT license](https://opensource.org/licenses/MIT).

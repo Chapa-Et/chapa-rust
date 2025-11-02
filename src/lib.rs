@@ -1,5 +1,10 @@
 //! # Chapa Rust SDK
 //!
+//! - Setup: see [README.md](https://github.com/Chapa-Et/chapa-rust/blob/main/README.md)
+//! - Examples: see the [`examples/`](https://github.com/Chapa-Et/chapa-rust/tree/main/examples) directory.
+//! - Endpoints: see [ENDPOINTS.md](https://github.com/Chapa-Et/chapa-rust/blob/main/ENDPOINTS.md)
+//! - Contributing: see [CONTRIBUTING.md](https://github.com/Chapa-Et/chapa-rust/blob/main/CONTRIBUTING.md)
+//!
 //! `chapa-rust` is an **unofficial, community-maintained Rust SDK** for interacting with the
 //! [Chapa Payments API](https://developer.chapa.co/).  
 //! It enables developers to perform operations such as payment initialization, verification,
@@ -14,9 +19,9 @@
 //! - Async-first design (using `reqwest` + `tokio`)
 //! - Strongly-typed request/response models
 //! - [TODO!] Full coverage of Chapa API endpoints
-//! - [TODO!] Built-in validation and error handling
-//! - [TODO!] Easy integration with web servers (Axum, Actix, Warp)
-//! - [TODO!] Optional utilities (e.g. transaction reference generation)
+//! - Built-in validation and error handling
+//! - Easy integration with web servers (Axum, Actix, Warp)
+//! - Optional utilities (e.g. transaction reference generation)
 //!
 //! ---
 //!
@@ -46,17 +51,17 @@
 //!
 //! ---
 //!
-//! ## [TODO!] Supported Endpoints
+//! ## Supported Endpoints
 //!
 //! | Category | Methods |
 //! |-----------|----------|
-//! | Transactions | `initialize`, `verify`, `all_transactions`, `transaction_logs` |
-//! | Split Payments | `split_payment` |
-//! | Banks | `list_banks` |
-//! | Subaccounts | `create_subaccount` |
-//! | Transfers | `transfer`, `bulk_transfer`, `verify_transfer`, `all_transfers` |
-//! | Direct Charges | `direct_charge`, `authorize_direct_charge` |
-//! | Utilities | `generate_tx_ref()` |
+//! | Transactions | `initialize_transaction`, `verify_transaction`, `get_transactions`, `get_transaction_logs` |
+//! | Banks | `list_banks`, `get_balances`, `get_balances_by_currency`, `swap_currencies`|
+//! | Transfers | `transfer`, `bulk_transfer`, `verify_transfer`, `verify_bulk_transfer`, `get_transfers` |
+//! | Direct Charges | `direct_charge`, `verify_direct_charge` |
+//! | Utilities | `generate_tx_ref`, [TODO!] `encrypt_data` |
+//! <!-- | Split Payments | `split_payment` | -->
+//! <!-- | Subaccounts | `create_subaccount` | -->
 //!
 //! ---
 //!
@@ -68,15 +73,16 @@
 //!
 //! ---
 //!
-//! ## Feature Flags [TODO!]
+//! ## Feature Flags
 //!
-//! - `blocking` — Enables blocking (non-async) client support  
-//! - `serde` — Enables serialization and deserialization (enabled by default)  
-//! - `logging` — Enables request/response logging (via `tracing` or `log`)  
+//! - `blocking`[TODO!] — Enables blocking (non-async) client support  
+//! - `logging` [TODO!] — Enables request/response logging (via `tracing` or `log`)
+//! - `utils` — Enables utility functions (e.g., transaction reference generation)
+//! - `encryption` — Enables data encryption utilities
 //!
 //! ```toml
 //! [dependencies]
-//! chapa-rust = { version = "0.1", features = ["serde", "logging"] }
+//! chapa-rust = { version = "0.1", features = ["encryption", "utils"] }
 //! ```
 //!
 //! ---
