@@ -81,7 +81,7 @@ pub struct CheckoutURL {
 /// Represents the detailed data received when verifying a payment transaction.
 // TODO: Adjust field types as needed based on actual API response, I made most optional to avoid deserialization issues
 #[derive(Debug, Deserialize)]
-pub struct VerifyData {
+pub struct VerifyPaymentData {
     /// The first name of the customer.
     pub first_name: Option<String>,
     /// The last name of the customer.
@@ -114,4 +114,89 @@ pub struct VerifyData {
     pub created_at: DateTime<Utc>,
     /// The timestamp when the transaction was last updated.
     pub updated_at: DateTime<Utc>,
+}
+
+// ------------------------------------- Transaction Timeline ---------------------------------------------
+
+/// Represents a single event in the transaction timeline.
+#[derive(Debug, Deserialize)]
+pub struct TransactionLog {
+    /// The unique identifier of the transaction log item.
+    pub item: u32,
+    /// The message associated with the transaction event.
+    pub message: String,
+    #[serde(rename = "type")]
+    /// The type of the transaction event.
+    pub event_type: String,
+    /// The timestamp when the transaction event was created.
+    pub created_at: DateTime<Utc>,
+    /// The timestamp when the transaction event was last updated.
+    pub updated_at: DateTime<Utc>,
+}
+
+// ------------------------------------- Get All Transactions ---------------------------------------------
+
+/// Represents the data section of the GetTransactionsResponse.
+#[derive(Debug, Serialize, Deserialize)]
+pub struct GetTransactionsData {
+    /// The list of transactions.
+    pub transactions: Vec<Transaction>,
+    /// The pagination information.
+    pub pagination: Pagination,
+}
+
+/// Represents a transaction in Chapa.
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Transaction {
+    /// The status of the transaction.
+    pub status: String,
+    /// The reference ID of the transaction.
+    pub ref_id: String,
+    #[serde(rename = "type")]
+    /// The type of the transaction. eg. "Payment Link"
+    pub ty: String,
+    /// The date and time when the transaction was created.
+    pub created_at: DateTime<Utc>,
+    /// The currency in which the transaction was made.
+    pub currency: String,
+    /// The amount of money that is involved in the transaction.
+    pub amount: String,
+    /// The charge applied to the transaction.
+    pub charge: String,
+    /// The unique identifier of the transaction.
+    pub trans_id: Option<String>,
+    /// The payment method used for the transaction.
+    pub payment_method: String,
+    /// The customer associated with the transaction.
+    pub customer: Customer,
+}
+
+/// Represents a customer associated with a transaction.
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Customer {
+    /// The unique identifier of the customer.
+    pub id: u32,
+    /// The first name of the customer.
+    pub first_name: Option<String>,
+    /// The last name of the customer.
+    pub last_name: Option<String>,
+    /// The email address of the customer.
+    pub email: Option<String>,
+    /// The mobile number of the customer.
+    pub mobile: Option<String>,
+}
+
+/// Represents pagination details for a list of transactions.
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Pagination {
+    /// How many transactions are in a single page.
+    pub per_page: u32,
+    /// Page number of the current set of transactions.
+    pub current_page: u32,
+    /// URL to the first page of transactions.
+    pub first_page_url: String,
+    /// URL to the next page of transactions.
+    pub next_page_url: Option<String>,
+    /// URL to the previous page of transactions.
+    pub prev_page_url: Option<String>,
 }

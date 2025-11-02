@@ -1,5 +1,5 @@
 [package]
-name = "chapa-rust"
+name = "chapa_rust"
 version = "0.1.0"
 edition = "2024"
 description = "Chapa SDK for Rust to integrate Chapa payment gateway into your Rust applications."
@@ -32,6 +32,9 @@ thiserror = "2.0.17"
 dotenvy = "0.15.7"
 chrono = { version = "0.4.42", features = ["serde"] }
 serde_json = "1.0.145"
+des = { version = "0.8.1", optional = true }
+base64 = { version = "0.22.1", optional = true }
+rand = { version = "0.9.2", optional = true }
 
 [dev-dependencies]
 tokio = { version = "1", features = ["full"] }
@@ -39,3 +42,8 @@ mockito = "1.7.0"
 
 [package.metadata.docs.rs]
 all-features = true
+
+[features]
+default = []
+encryption = ["dep:des", "dep:base64"]
+utils = ["dep:rand"]
